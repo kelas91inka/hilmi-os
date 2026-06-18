@@ -1,0 +1,23 @@
+{
+  "name": "Hilmi OS",
+  "short_name": "Hilmi OS",
+  "description": "Personal Operating System & Portfolio of Muhammad Hilmi Mu'afa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "/globe.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/globe.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
