@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { taskSchema, TaskFormValues } from "../validators/task.schema";
@@ -14,6 +15,19 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const STATUS_LABELS: Record<string, string> = {
+  belum_dimulai: "Belum Dimulai",
+  sedang_dikerjakan: "Sedang Dikerjakan",
+  selesai: "Selesai",
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+  rendah: "⚪ Rendah",
+  normal: "🔵 Normal",
+  tinggi: "🟠 Tinggi",
+  kritis: "🔴 Kritis",
+};
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { X, Tag, Plus, AlertCircle } from "lucide-react";
 
@@ -36,6 +50,7 @@ export function TaskForm({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
 }: TaskFormProps) {
+  const router = useRouter();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -81,9 +96,12 @@ export function TaskForm({
     if (open) {
       const resetTags = initialData?.tags || [];
       reset({ ...defaultValues, tags: resetTags });
-      setTags(resetTags);
-      setTagInput('');
-      setFormError(null);
+      const timer = setTimeout(() => {
+        setTags(resetTags);
+        setTagInput('');
+        setFormError(null);
+      }, 0);
+      return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reset]);
@@ -137,6 +155,7 @@ export function TaskForm({
       setOpen(false);
       reset();
       setTags([]);
+      router.refresh();
       if (onSuccess) onSuccess();
     } else {
       setFormError(result.error || 'Terjadi kesalahan. Silakan coba lagi.');
@@ -148,7 +167,6 @@ export function TaskForm({
       {(!isControlled || trigger) && (
         <DialogTrigger
           render={trigger || <Button>Tambah Tugas</Button>}
-          nativeButton={!trigger}
         />
       )}
       <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
@@ -194,13 +212,14 @@ export function TaskForm({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih status" />
+                      <SelectValue placeholder="Pilih status">
+                        {field.value ? STATUS_LABELS[field.value] : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={TASK_STATUS.BELUM_DIMULAI}>Belum Dimulai</SelectItem>
                       <SelectItem value={TASK_STATUS.SEDANG_DIKERJAKAN}>Sedang Dikerjakan</SelectItem>
                       <SelectItem value={TASK_STATUS.SELESAI}>Selesai</SelectItem>
-                      <SelectItem value={TASK_STATUS.DITUNDA}>Ditunda</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -215,7 +234,9 @@ export function TaskForm({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih prioritas" />
+                      <SelectValue placeholder="Pilih prioritas">
+                        {field.value ? PRIORITY_LABELS[field.value] : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={TASK_PRIORITY.RENDAH}>⚪ Rendah</SelectItem>
@@ -245,7 +266,9 @@ export function TaskForm({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value || "none"}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih proyek..." />
+                      <SelectValue placeholder="Pilih proyek...">
+                        {field.value === 'none' || !field.value ? 'Tidak ada' : projects.find(p => p.id === field.value)?.title}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Tidak ada</SelectItem>
@@ -266,7 +289,9 @@ export function TaskForm({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value || "none"}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih tujuan..." />
+                      <SelectValue placeholder="Pilih tujuan...">
+                        {field.value === 'none' || !field.value ? 'Tidak ada' : goals.find(g => g.id === field.value)?.title}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Tidak ada</SelectItem>

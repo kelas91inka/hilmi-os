@@ -7,6 +7,7 @@ export const goalSchema = z.object({
   status: z.enum(['active', 'completed', 'archived']).default('active'),
   target_date: z.string().optional().nullable(),
   progress: z.number().min(0).max(100).default(0),
+  category: z.string().optional().nullable(),
 });
 
 export type GoalFormData = z.infer<typeof goalSchema>;

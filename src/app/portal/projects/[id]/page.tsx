@@ -14,6 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageContextSetter } from "@/features/ai/components/PageContextSetter";
+import { ProjectTimelineForm } from "@/features/projects/components/ProjectTimelineForm";
+import { DeleteTimelineEventButton } from "@/features/projects/components/DeleteTimelineEventButton";
+import { ProjectStatusBadge } from "@/features/projects/components/ProjectStatusBadge";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -51,7 +54,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </h2>
           
           <div className="flex flex-wrap items-center text-sm text-muted-foreground mt-2 gap-4">
-            <Badge variant="outline" className="capitalize">{project.status}</Badge>
+            <ProjectStatusBadge status={project.status} />
             
             <div className="flex items-center">
               {project.visibility === PROJECT_VISIBILITY.PUBLIC ? (
@@ -130,7 +133,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-lg mb-4">Tentang Proyek</h3>
                     <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                      {project.description}
+                       {project.description}
                     </p>
                   </CardContent>
                 </Card>
@@ -148,7 +151,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   <div className="space-y-3">
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Status</p>
-                      <p className="text-sm font-medium capitalize">{project.status}</p>
+                      <div className="mt-0.5">
+                        <ProjectStatusBadge status={project.status} />
+                      </div>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Visibilitas</p>
@@ -233,29 +238,40 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <h3 className="text-xl font-bold tracking-tight">Linimasa Proyek</h3>
               <p className="text-sm text-muted-foreground mt-1">Lacak pencapaian dan perubahan signifikan.</p>
             </div>
-            <Button variant="outline" size="sm" disabled title="Fitur Tambah Event akan segera hadir!" className="hidden sm:flex">
-              Tambah Event
-            </Button>
+            <ProjectTimelineForm projectId={project.id} />
           </div>
 
           {project.project_timeline && project.project_timeline.length > 0 ? (
             <div className="relative border-l-2 border-muted ml-3 pl-6 space-y-8 mt-8">
-              {project.project_timeline.map(event => (
-                <div key={event.id} className="relative">
-                  <div className="absolute -left-[33px] top-1 h-4 w-4 rounded-full border-2 border-primary bg-background" />
-                  <div className="bg-card border rounded-xl p-5">
-                    <div className="flex items-center justify-between gap-4 mb-2">
-                      <h4 className="font-semibold text-base">{event.title}</h4>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {event.event_date && format(new Date(event.event_date), "dd MMM yyyy", { locale: localeId })}
-                      </span>
+              {[...project.project_timeline]
+                .sort((a, b) => {
+                  const dateA = a.event_date ? new Date(a.event_date).getTime() : 0;
+                  const dateB = b.event_date ? new Date(b.event_date).getTime() : 0;
+                  return dateA - dateB;
+                })
+                .map(event => (
+                  <div key={event.id} className="relative group">
+                    <div className="absolute -left-[33px] top-1.5 h-4 w-4 rounded-full border-2 border-primary bg-background" />
+                    <div className="bg-card border rounded-xl p-5 hover:border-primary/20 transition-all">
+                      <div className="flex items-center justify-between gap-4 mb-2">
+                        <h4 className="font-semibold text-base">{event.title}</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {event.event_date && format(new Date(event.event_date), "dd MMM yyyy", { locale: localeId })}
+                          </span>
+                          <DeleteTimelineEventButton
+                            eventId={event.id}
+                            projectId={project.id}
+                            eventTitle={event.title}
+                          />
+                        </div>
+                      </div>
+                      {event.description && (
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{event.description}</p>
+                      )}
                     </div>
-                    {event.description && (
-                      <p className="text-sm text-muted-foreground">{event.description}</p>
-                    )}
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center p-12 text-center border-2 rounded-xl bg-card border-dashed">

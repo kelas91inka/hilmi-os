@@ -82,7 +82,7 @@ export const DiaryEditor = ({ entryDate, initialEntry }: DiaryEditorProps) => {
           <div className="flex flex-col">
             <span className="font-semibold text-lg">{displayDate}</span>
             <span className="text-xs text-muted-foreground">
-              {lastSaved ? `Last saved: ${lastSaved.toLocaleTimeString()}` : 'Draft'}
+              {lastSaved ? `Terakhir disimpan: ${lastSaved.toLocaleTimeString('id-ID')}` : 'Draf Baru'}
             </span>
           </div>
         </div>
@@ -91,11 +91,11 @@ export const DiaryEditor = ({ entryDate, initialEntry }: DiaryEditorProps) => {
           <div className="flex items-center text-xs mr-2">
             {isSaving ? (
               <span className="flex items-center text-blue-500 font-medium">
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Saving...
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Menyimpan...
               </span>
             ) : lastSaved ? (
               <span className="flex items-center text-emerald-500 font-medium opacity-70">
-                <CheckCircle2 className="w-3 h-3 mr-1" /> Saved
+                <CheckCircle2 className="w-3 h-3 mr-1" /> Tersimpan
               </span>
             ) : null}
           </div>
@@ -106,14 +106,14 @@ export const DiaryEditor = ({ entryDate, initialEntry }: DiaryEditorProps) => {
           )}
           <Button onClick={handleSave} disabled={isSaving}>
             <Save className="w-4 h-4 mr-2" />
-            Save
+            Simpan
           </Button>
         </div>
       </div>
 
       {/* Mood Picker */}
       <div className="px-2">
-        <h3 className="text-sm font-medium mb-3 text-muted-foreground">How are you feeling today?</h3>
+        <h3 className="text-sm font-medium mb-3 text-muted-foreground">Bagaimana perasaan Anda hari ini?</h3>
         <MoodPicker value={mood} onChange={setMood} />
       </div>
 
@@ -123,7 +123,7 @@ export const DiaryEditor = ({ entryDate, initialEntry }: DiaryEditorProps) => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="text-3xl font-bold border-0 bg-transparent px-0 focus-visible:ring-0 shadow-none h-auto rounded-none pb-2"
-          placeholder="Diary Title (Optional)"
+          placeholder="Judul Jurnal (Opsional)"
         />
       </div>
 

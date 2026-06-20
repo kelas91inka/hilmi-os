@@ -30,7 +30,7 @@ export function DiaryCalendar({ entries }: DiaryCalendarProps) {
   const entryDates = entries.map(e => parseISO(e.entry_date));
 
   return (
-    <div className="border rounded-lg bg-card shadow-sm inline-block p-2">
+    <div className="border rounded-2xl bg-card glow-card inline-block p-3">
       <Calendar
         mode="single"
         selected={date}
@@ -41,7 +41,7 @@ export function DiaryCalendar({ entries }: DiaryCalendarProps) {
         modifiersClassNames={{
           hasEntry: 'bg-primary/15 text-primary font-medium hover:bg-primary/25 rounded-md',
         }}
-        className="rounded-md"
+        className="rounded-xl"
       />
     </div>
   );

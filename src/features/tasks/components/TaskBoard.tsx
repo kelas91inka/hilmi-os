@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useOptimistic, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { TaskWithTags, TASK_STATUS, TaskStatus } from '../types/task.types';
 import { Project } from '@/features/projects/types/project.types';
 import { Goal } from '@/features/goals/types/goal.types';
 import { TaskItem } from './TaskItem';
 import { updateTaskStatusAction } from '../actions/task.actions';
-import { Circle, Clock, CheckCircle2, PauseCircle } from 'lucide-react';
+import { Circle, Clock, CheckCircle2 } from 'lucide-react';
 
 interface TaskBoardProps {
   tasks: TaskWithTags[];
@@ -42,18 +43,10 @@ const COLUMNS = [
     headerBg: 'bg-green-500/5',
     activeBg: 'bg-green-500/10 border-green-400 border-dashed',
   },
-  {
-    id: TASK_STATUS.DITUNDA,
-    title: 'Ditunda',
-    icon: PauseCircle,
-    iconColor: 'text-orange-500',
-    dotColor: 'bg-orange-500',
-    headerBg: 'bg-orange-500/5',
-    activeBg: 'bg-orange-500/10 border-orange-400 border-dashed',
-  },
 ] as const;
 
 export function TaskBoard({ tasks, projects, goals }: TaskBoardProps) {
+  const router = useRouter();
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -94,7 +87,7 @@ export function TaskBoard({ tasks, projects, goals }: TaskBoardProps) {
     }
   };
 
-  const handleDrop = (e: React.DragEvent, columnId: string) => {
+  const handleDrop = async (e: React.DragEvent, columnId: string) => {
     e.preventDefault();
     setIsDraggingOver(null);
     const taskId = e.dataTransfer.getData('text/plain');
@@ -103,16 +96,17 @@ export function TaskBoard({ tasks, projects, goals }: TaskBoardProps) {
     const task = optimisticTasks.find(t => t.id === taskId);
     if (!task || task.status === columnId) return;
 
-    startTransition(async () => {
-      // Optimistically update UI immediately
+    // Run the optimistic update in a synchronous transition
+    startTransition(() => {
       updateOptimisticTasks({ taskId, newStatus: columnId as TaskStatus });
-      // Then persist to server
-      await updateTaskStatusAction(taskId, columnId as TaskStatus);
     });
+
+    // Run the server action outside of the transition to prevent hanging
+    await updateTaskStatusAction(taskId, columnId as TaskStatus);
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-start">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
       {COLUMNS.map((column) => {
         const columnTasks = optimisticTasks.filter(t => t.status === column.id);
         const Icon = column.icon;
@@ -121,7 +115,7 @@ export function TaskBoard({ tasks, projects, goals }: TaskBoardProps) {
         return (
           <div
             key={column.id}
-            className={`rounded-xl min-h-[500px] transition-all duration-200 border-2 ${
+            className={`rounded-2xl min-h-[500px] transition-all duration-200 border-2 ${
               isOver
                 ? `${column.activeBg}`
                 : 'border-transparent bg-muted/30'
@@ -131,7 +125,7 @@ export function TaskBoard({ tasks, projects, goals }: TaskBoardProps) {
             onDrop={(e) => handleDrop(e, column.id)}
           >
             {/* Column Header */}
-            <div className={`rounded-t-xl px-4 py-3 ${column.headerBg} border-b border-border/50`}>
+            <div className={`rounded-t-2xl px-4 py-3 ${column.headerBg} border-b border-border/50`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Icon className={`w-4 h-4 ${column.iconColor}`} />
@@ -146,7 +140,7 @@ export function TaskBoard({ tasks, projects, goals }: TaskBoardProps) {
             {/* Column Content */}
             <div className="p-3 flex flex-col gap-2.5">
               {columnTasks.length === 0 ? (
-                <div className={`text-sm text-muted-foreground text-center py-8 border-2 border-dashed rounded-lg transition-colors ${
+                <div className={`text-sm text-muted-foreground text-center py-8 border-2 border-dashed rounded-xl transition-colors ${
                   isOver ? 'border-primary/40 text-primary' : 'border-muted'
                 }`}>
                   {isOver ? '📥 Lepas di sini' : 'Tarik tugas ke sini'}

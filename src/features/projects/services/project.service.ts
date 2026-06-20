@@ -1,5 +1,5 @@
 import { projectRepository, ProjectUpdate } from "../repositories/project.repository";
-import { ProjectFormValues } from "../validators/project.schema";
+import { ProjectFormValues, ProjectTimelineFormValues } from "../validators/project.schema";
 
 export const projectService = {
   async getAllProjects() {
@@ -67,5 +67,17 @@ export const projectService = {
 
   async deleteProject(id: string) {
     return projectRepository.deleteProject(id);
+  },
+
+  async createProjectTimelineEvent(projectId: string, data: ProjectTimelineFormValues) {
+    return projectRepository.createProjectTimelineEvent(projectId, {
+      title: data.title,
+      description: data.description || null,
+      event_date: data.event_date || null,
+    });
+  },
+
+  async deleteProjectTimelineEvent(id: string) {
+    return projectRepository.deleteProjectTimelineEvent(id);
   }
 };

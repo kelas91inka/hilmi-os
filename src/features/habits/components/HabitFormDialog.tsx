@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useState, ReactElement } from 'react';
 import { HabitFormData, habitSchema } from '../validators/habit.schema';
 import { createHabitAction, updateHabitAction } from '../actions/habit.actions';
@@ -14,12 +15,29 @@ import { Plus } from 'lucide-react';
 interface HabitFormDialogProps {
   initialData?: Habit;
   trigger?: ReactElement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function HabitFormDialog({ initialData, trigger }: HabitFormDialogProps) {
-  const [open, setOpen] = useState(false);
+export function HabitFormDialog({
+  initialData,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: HabitFormDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) {
+      controlledOnOpenChange?.(value);
+    } else {
+      setUncontrolledOpen(value);
+    }
+  };
 
   const [formData, setFormData] = useState<HabitFormData>({
     title: initialData?.title || '',
@@ -27,6 +45,21 @@ export function HabitFormDialog({ initialData, trigger }: HabitFormDialogProps) 
     target_frequency: initialData?.target_frequency || 'daily',
     active: initialData ? initialData.active : true,
   });
+
+  // Keep form sync when initialData/open changes (pre-filling form)
+  React.useEffect(() => {
+    if (open && initialData) {
+      const timer = setTimeout(() => {
+        setFormData({
+          title: initialData.title,
+          description: initialData.description || '',
+          target_frequency: initialData.target_frequency,
+          active: initialData.active,
+        });
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [open, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,14 +98,19 @@ export function HabitFormDialog({ initialData, trigger }: HabitFormDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={
-        trigger || (
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            New Habit
-          </Button>
-        )
-      } />
+      {!isControlled && (
+        <DialogTrigger
+          nativeButton={trigger ? (trigger.type === 'button' || trigger.type === Button) : true}
+          render={
+            trigger || (
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                New Habit
+              </Button>
+            )
+          }
+        />
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Edit Habit' : 'Create New Habit'}</DialogTitle>

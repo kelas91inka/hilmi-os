@@ -11,6 +11,23 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
+const THEME_LABELS: Record<string, string> = {
+  system: "Sistem Default",
+  light: "Terang (Light)",
+  dark: "Gelap (Dark)",
+};
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  id: "Bahasa Indonesia",
+  en: "English",
+};
+
+const TIMEZONE_LABELS: Record<string, string> = {
+  "Asia/Jakarta": "WIB (Asia/Jakarta)",
+  "Asia/Makassar": "WITA (Asia/Makassar)",
+  "Asia/Jayapura": "WIT (Asia/Jayapura)",
+};
+
 export function SettingsForm({ initialData }: { initialData: UserSettings }) {
   const { setTheme } = useTheme();
   const [loading, setLoading] = useState(false);
@@ -57,7 +74,7 @@ export function SettingsForm({ initialData }: { initialData: UserSettings }) {
   };
 
   return (
-    <Card className="max-w-2xl">
+    <Card className="max-w-2xl glow-card rounded-2xl border transition-all duration-200">
       <CardHeader>
         <CardTitle>Preferensi Sistem</CardTitle>
         <CardDescription>
@@ -73,7 +90,9 @@ export function SettingsForm({ initialData }: { initialData: UserSettings }) {
             onValueChange={(val) => handleStringChange('theme', val)}
           >
             <SelectTrigger id="theme">
-              <SelectValue placeholder="Pilih Tema" />
+              <SelectValue placeholder="Pilih Tema">
+                {THEME_LABELS[formData.theme] || formData.theme}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="system">Sistem Default</SelectItem>
@@ -91,7 +110,9 @@ export function SettingsForm({ initialData }: { initialData: UserSettings }) {
             onValueChange={(val) => handleStringChange('language', val)}
           >
             <SelectTrigger id="language">
-              <SelectValue placeholder="Pilih Bahasa" />
+              <SelectValue placeholder="Pilih Bahasa">
+                {LANGUAGE_LABELS[formData.language] || formData.language}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="id">Bahasa Indonesia</SelectItem>
@@ -108,7 +129,9 @@ export function SettingsForm({ initialData }: { initialData: UserSettings }) {
             onValueChange={(val) => handleStringChange('timezone', val)}
           >
             <SelectTrigger id="timezone">
-              <SelectValue placeholder="Pilih Zona Waktu" />
+              <SelectValue placeholder="Pilih Zona Waktu">
+                {TIMEZONE_LABELS[formData.timezone] || formData.timezone}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Asia/Jakarta">WIB (Asia/Jakarta)</SelectItem>

@@ -20,15 +20,15 @@ export default async function TasksPage() {
   ]);
 
   return (
-    <div className="flex-1 space-y-6 max-w-7xl mx-auto">
+    <div className="flex-1 space-y-6 max-w-5xl mx-auto">
       <PageContextSetter context="Manajemen Tugas" />
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-5 rounded-2xl border glow-card">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <CheckSquare className="w-8 h-8 text-primary" />
+          <h2 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2">
+            <CheckSquare className="w-7 h-7 text-primary" />
             Tugas
           </h2>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Kelola tugas harian dan jadwalkan aktivitas Anda.
           </p>
         </div>

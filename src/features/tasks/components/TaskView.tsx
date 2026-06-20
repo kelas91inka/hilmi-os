@@ -11,7 +11,7 @@ import { TaskStatsBar } from './TaskStatsBar';
 import { Input } from '@/components/ui/input';
 import {
   Search, LayoutGrid, List as ListIcon, Filter, X,
-  ChevronDown, Plus,
+  ChevronDown,
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -21,6 +21,21 @@ interface TaskViewProps {
   projects: Project[];
   goals: Goal[];
 }
+
+const STATUS_LABELS: Record<string, string> = {
+  all: 'Semua Status',
+  belum_dimulai: 'Belum Dimulai',
+  sedang_dikerjakan: 'Sedang Dikerjakan',
+  selesai: 'Selesai',
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+  all: 'Semua Prioritas',
+  kritis: '🔴 Kritis',
+  tinggi: '🟠 Tinggi',
+  normal: '🔵 Normal',
+  rendah: '⚪ Rendah',
+};
 
 export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
   const [view, setView] = useState<'board' | 'list'>('board');
@@ -62,18 +77,18 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
   });
 
   return (
-    <div className="space-y-5">
-      {/* Stats Bar */}
+    <div className="space-y-6">
+      {/* Header and Stats */}
       <TaskStatsBar tasks={initialTasks} />
 
       {/* Controls Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center bg-card p-4 rounded-xl border">
-        {/* Search */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center bg-card p-4 rounded-2xl border glow-card w-full">
+        {/* Search Input */}
         <div className="relative w-full sm:max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Cari tugas..."
-            className="pl-9 h-9"
+            className="pl-9 h-9 text-xs"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -88,13 +103,13 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          {/* Filter Popover — collapsible secondary filters */}
+          {/* Filter Popover */}
           <Popover open={filterOpen} onOpenChange={setFilterOpen}>
             <PopoverTrigger
               id="task-filter-btn"
-              className={`flex items-center gap-1.5 text-sm px-3 h-9 rounded-lg border transition-colors ${
+              className={`flex items-center gap-1.5 text-xs px-3 h-9 rounded-xl border transition-colors ${
                 activeFilterCount > 0
-                  ? 'bg-primary/10 border-primary/30 text-primary'
+                  ? 'bg-primary/10 border-primary/30 text-primary font-semibold'
                   : 'hover:bg-muted text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -126,13 +141,14 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
                   <label className="text-xs text-muted-foreground font-medium">Status</label>
                   <Select value={status} onValueChange={(val) => setStatus(val || 'all')}>
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Semua Status" />
+                      <SelectValue placeholder="Semua Status">
+                        {STATUS_LABELS[status]}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Status</SelectItem>
                       <SelectItem value="belum_dimulai">Belum Dimulai</SelectItem>
                       <SelectItem value="sedang_dikerjakan">Sedang Dikerjakan</SelectItem>
-                      <SelectItem value="ditunda">Ditunda</SelectItem>
                       <SelectItem value="selesai">Selesai</SelectItem>
                     </SelectContent>
                   </Select>
@@ -143,7 +159,9 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
                   <label className="text-xs text-muted-foreground font-medium">Prioritas</label>
                   <Select value={priority} onValueChange={(val) => setPriority(val || 'all')}>
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Semua Prioritas" />
+                      <SelectValue placeholder="Semua Prioritas">
+                        {PRIORITY_LABELS[priority]}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Prioritas</SelectItem>
@@ -160,7 +178,9 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
                   <label className="text-xs text-muted-foreground font-medium">Proyek</label>
                   <Select value={projectId} onValueChange={(val) => setProjectId(val || 'all')}>
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Semua Proyek" />
+                      <SelectValue placeholder="Semua Proyek">
+                        {projectId === 'all' ? 'Semua Proyek' : projects.find(p => p.id === projectId)?.title}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Proyek</SelectItem>
@@ -176,7 +196,9 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
                   <label className="text-xs text-muted-foreground font-medium">Tujuan</label>
                   <Select value={goalId} onValueChange={(val) => setGoalId(val || 'all')}>
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Semua Tujuan" />
+                      <SelectValue placeholder="Semua Tujuan">
+                        {goalId === 'all' ? 'Semua Tujuan' : goals.find(g => g.id === goalId)?.title}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Tujuan</SelectItem>
@@ -212,10 +234,10 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
           </Popover>
 
           {/* View toggle */}
-          <div className="flex bg-muted rounded-lg p-1 border">
+          <div className="flex bg-muted rounded-xl p-1 border">
             <button
               onClick={() => setView('board')}
-              className={`p-1.5 rounded-md flex items-center justify-center transition-colors ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors ${
                 view === 'board'
                   ? 'bg-background shadow-sm text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
@@ -227,7 +249,7 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
             </button>
             <button
               onClick={() => setView('list')}
-              className={`p-1.5 rounded-md flex items-center justify-center transition-colors ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors ${
                 view === 'list'
                   ? 'bg-background shadow-sm text-foreground'
                   : 'text-muted-foreground hover:text-foreground'

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { projectService } from "../services/project.service";
-import { ProjectFormValues } from "../validators/project.schema";
+import { ProjectFormValues, ProjectTimelineFormValues } from "../validators/project.schema";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error) return error.message;
@@ -43,5 +43,27 @@ export async function deleteProjectAction(id: string) {
   } catch (error: unknown) {
     console.error("Failed to delete project:", error);
     return { success: false, error: getErrorMessage(error, "Failed to delete project") };
+  }
+}
+
+export async function createProjectTimelineEventAction(projectId: string, data: ProjectTimelineFormValues) {
+  try {
+    await projectService.createProjectTimelineEvent(projectId, data);
+    revalidatePath(`/portal/projects/${projectId}`);
+    return { success: true };
+  } catch (error: unknown) {
+    console.error("Failed to create project timeline event:", error);
+    return { success: false, error: getErrorMessage(error, "Failed to create project timeline event") };
+  }
+}
+
+export async function deleteProjectTimelineEventAction(id: string, projectId: string) {
+  try {
+    await projectService.deleteProjectTimelineEvent(id);
+    revalidatePath(`/portal/projects/${projectId}`);
+    return { success: true };
+  } catch (error: unknown) {
+    console.error("Failed to delete project timeline event:", error);
+    return { success: false, error: getErrorMessage(error, "Failed to delete project timeline event") };
   }
 }

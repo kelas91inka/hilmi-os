@@ -12,8 +12,22 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const STATUS_LABELS: Record<string, string> = {
+  planning: "Perencanaan (Planning)",
+  active: "Aktif (Active)",
+  paused: "Ditunda (Paused)",
+  completed: "Selesai (Completed)",
+  archived: "Diarsipkan (Archived)",
+};
+
+const VISIBILITY_LABELS: Record<string, string> = {
+  private: "Private (Internal)",
+  public: "Public (Portfolio)",
+};
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertCircle, Link as LinkIcon } from "lucide-react";
+import { ImageUploader } from "@/components/shared/image-uploader";
 
 type ProjectFormProps = {
   initialData?: ProjectFormValues & { id?: string };
@@ -85,7 +99,8 @@ export function ProjectForm({
   useEffect(() => {
     if (open) {
       reset(defaultValues);
-      setFormError(null);
+      const timer = setTimeout(() => setFormError(null), 0);
+      return () => clearTimeout(timer);
     }
   }, [open, reset, defaultValues]);
 
@@ -124,7 +139,6 @@ export function ProjectForm({
       {(!isControlled || trigger) && (
         <DialogTrigger 
           render={trigger || <Button>Buat Project Baru</Button>} 
-          nativeButton={!trigger}
         />
       )}
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -152,12 +166,19 @@ export function ProjectForm({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="cover_image">URL Cover Image (Opsional)</Label>
-            <div className="relative">
-              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="cover_image" className="pl-9" placeholder="https://..." {...register("cover_image")} />
-            </div>
-            <p className="text-[10px] text-muted-foreground">Gambar akan ditampilkan sebagai banner di halaman detail project.</p>
+            <Controller
+              control={control}
+              name="cover_image"
+              render={({ field }) => (
+                <ImageUploader
+                  label="URL Cover Image (Opsional)"
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  placeholder="https://..."
+                />
+              )}
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">Gambar akan ditampilkan sebagai banner di halaman detail project.</p>
             {errors.cover_image && <p className="text-xs text-red-500">{errors.cover_image.message}</p>}
           </div>
 
@@ -170,14 +191,16 @@ export function ProjectForm({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih status" />
+                      <SelectValue placeholder="Pilih status">
+                        {field.value ? STATUS_LABELS[field.value] : "Pilih status"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={PROJECT_STATUS.PLANNING}>Perencanaan (Planning)</SelectItem>
-                      <SelectItem value={PROJECT_STATUS.ACTIVE}>Aktif (Active)</SelectItem>
-                      <SelectItem value={PROJECT_STATUS.PAUSED}>Ditunda (Paused)</SelectItem>
-                      <SelectItem value={PROJECT_STATUS.COMPLETED}>Selesai (Completed)</SelectItem>
-                      <SelectItem value={PROJECT_STATUS.ARCHIVED}>Diarsipkan (Archived)</SelectItem>
+                      <SelectItem value={PROJECT_STATUS.PLANNING}>{STATUS_LABELS[PROJECT_STATUS.PLANNING]}</SelectItem>
+                      <SelectItem value={PROJECT_STATUS.ACTIVE}>{STATUS_LABELS[PROJECT_STATUS.ACTIVE]}</SelectItem>
+                      <SelectItem value={PROJECT_STATUS.PAUSED}>{STATUS_LABELS[PROJECT_STATUS.PAUSED]}</SelectItem>
+                      <SelectItem value={PROJECT_STATUS.COMPLETED}>{STATUS_LABELS[PROJECT_STATUS.COMPLETED]}</SelectItem>
+                      <SelectItem value={PROJECT_STATUS.ARCHIVED}>{STATUS_LABELS[PROJECT_STATUS.ARCHIVED]}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -193,11 +216,13 @@ export function ProjectForm({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih visibilitas" />
+                      <SelectValue placeholder="Pilih visibilitas">
+                        {field.value ? VISIBILITY_LABELS[field.value] : "Pilih visibilitas"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={PROJECT_VISIBILITY.PRIVATE}>Private (Internal)</SelectItem>
-                      <SelectItem value={PROJECT_VISIBILITY.PUBLIC}>Public (Portfolio)</SelectItem>
+                      <SelectItem value={PROJECT_VISIBILITY.PRIVATE}>{VISIBILITY_LABELS[PROJECT_VISIBILITY.PRIVATE]}</SelectItem>
+                      <SelectItem value={PROJECT_VISIBILITY.PUBLIC}>{VISIBILITY_LABELS[PROJECT_VISIBILITY.PUBLIC]}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

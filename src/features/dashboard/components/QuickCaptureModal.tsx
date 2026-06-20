@@ -26,6 +26,7 @@ export function QuickCaptureModal({ open, onClose }: QuickCaptureModalProps) {
   const [priority, setPriority] = useState<TaskPriority>(TASK_PRIORITY.NORMAL);
   const [dueDate, setDueDate] = useState('');
   const [goalType, setGoalType] = useState<GoalType>('bulanan');
+  const [goalCategory, setGoalCategory] = useState('');
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -38,6 +39,7 @@ export function QuickCaptureModal({ open, onClose }: QuickCaptureModalProps) {
       setPriority(TASK_PRIORITY.NORMAL);
       setDueDate('');
       setGoalType('bulanan');
+      setGoalCategory('');
       setSuccess(false);
       setError(null);
       setTimeout(() => titleRef.current?.focus(), 100);
@@ -86,6 +88,7 @@ export function QuickCaptureModal({ open, onClose }: QuickCaptureModalProps) {
           status: 'active',
           target_date: dueDate || null,
           progress: 0,
+          category: goalCategory.trim() || null,
         });
         if (result.success) {
           setSuccess(true);
@@ -257,28 +260,39 @@ export function QuickCaptureModal({ open, onClose }: QuickCaptureModalProps) {
 
           {/* Goal-only fields */}
           {mode === 'goal' && (
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <select
-                  value={goalType}
-                  onChange={(e) => setGoalType(e.target.value as GoalType)}
-                  className="w-full text-xs bg-muted/50 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/40 appearance-none cursor-pointer"
-                >
-                  <option value="mingguan">Mingguan</option>
-                  <option value="bulanan">Bulanan</option>
-                  <option value="tahunan">Tahunan</option>
-                  <option value="lifetime">Lifetime</option>
-                </select>
-                <ChevronDown className="w-3 h-3 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <select
+                    value={goalType}
+                    onChange={(e) => setGoalType(e.target.value as GoalType)}
+                    className="w-full text-xs bg-muted/50 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/40 appearance-none cursor-pointer"
+                  >
+                    <option value="mingguan">Mingguan</option>
+                    <option value="bulanan">Bulanan</option>
+                    <option value="tahunan">Tahunan</option>
+                    <option value="lifetime">Lifetime</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+                <div className="relative flex-1">
+                  <Calendar className="w-3 h-3 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    placeholder="Target tanggal"
+                    className="w-full text-xs bg-muted/50 border rounded-lg pl-7 pr-3 py-2 outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
               </div>
-              <div className="relative flex-1">
-                <Calendar className="w-3 h-3 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <div>
                 <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  placeholder="Target tanggal"
-                  className="w-full text-xs bg-muted/50 border rounded-lg pl-7 pr-3 py-2 outline-none focus:ring-2 focus:ring-primary/40"
+                  type="text"
+                  placeholder="Kategori (opsional)... Misal: Finansial, Karir"
+                  value={goalCategory}
+                  onChange={(e) => setGoalCategory(e.target.value)}
+                  className="w-full text-xs bg-muted/50 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all placeholder:text-muted-foreground"
                 />
               </div>
             </div>

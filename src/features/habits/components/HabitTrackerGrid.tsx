@@ -35,9 +35,9 @@ export function HabitTrackerGrid({ habits, daysCount = 7 }: HabitTrackerGridProp
 
   return (
     <div className="overflow-x-auto pb-4">
-      <div className="min-w-max border rounded-lg overflow-hidden bg-card text-sm">
+      <div className="min-w-max border rounded-2xl overflow-hidden bg-card glow-card text-sm">
         <div className="grid border-b bg-muted/50" style={{ gridTemplateColumns: `minmax(200px, 1fr) repeat(${daysCount}, minmax(48px, 1fr))` }}>
-          <div className="p-3 font-semibold text-foreground flex items-center border-r">Kebiasaan</div>
+          <div className="p-3 font-bold text-foreground flex items-center border-r sticky left-0 bg-muted/50 z-10">Kebiasaan</div>
           {days.map((day, i) => (
             <div key={i} className="p-2 border-r last:border-r-0 flex flex-col items-center justify-center text-xs text-muted-foreground">
               <span className="font-medium text-foreground">{format(day, 'dd')}</span>
@@ -49,7 +49,7 @@ export function HabitTrackerGrid({ habits, daysCount = 7 }: HabitTrackerGridProp
         {/* Habit Rows */}
         {habits.map((habit) => (
           <div key={habit.id} className="grid border-b last:border-b-0 hover:bg-muted/50 transition-colors" style={{ gridTemplateColumns: `minmax(200px, 1fr) repeat(${daysCount}, minmax(48px, 1fr))` }}>
-            <div className="p-3 flex items-center justify-between border-r">
+            <div className="p-3 flex items-center justify-between border-r sticky left-0 bg-card z-10">
               <Link href={`/portal/habits/${habit.id}`} className="font-medium text-foreground hover:text-primary transition-colors line-clamp-1">
                 {habit.title}
               </Link>

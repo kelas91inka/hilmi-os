@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { ArrowLeft, CalendarIcon, Target, TrendingUp, CheckCircle2, Circle, Clock, PauseCircle } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, Target, TrendingUp, CheckCircle2, Circle, Clock } from 'lucide-react';
 
 import { goalService } from '@/features/goals/services/goal.service';
 import { taskService } from '@/features/tasks/services/task.service';
@@ -57,10 +57,15 @@ export default async function GoalDetailPage({ params }: { params: Promise<{ id:
       <div className="bg-white dark:bg-slate-950 rounded-xl border dark:border-slate-800 shadow-sm p-6 lg:p-8">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
               <Badge variant="outline" className="font-normal uppercase tracking-wider text-[10px]">
                 {typeLabels[goal.goal_type] || goal.goal_type}
               </Badge>
+              {goal.category && (
+                <Badge variant="secondary" className="font-normal text-[10px] bg-primary/10 text-primary border-transparent dark:bg-primary/20">
+                  {goal.category}
+                </Badge>
+              )}
               <Badge variant="secondary" className={`${statusConfig[goal.status]?.className || statusConfig.active.className}`}>
                 {statusConfig[goal.status]?.label || "Aktif"}
               </Badge>
@@ -101,6 +106,7 @@ export default async function GoalDetailPage({ params }: { params: Promise<{ id:
                 goal_type: goal.goal_type,
                 target_date: goal.target_date ? goal.target_date.split('T')[0] : "",
                 progress: goal.progress,
+                category: goal.category || "",
               }}
             />
           </div>
@@ -148,7 +154,6 @@ export default async function GoalDetailPage({ params }: { params: Promise<{ id:
                     const statusIcon = {
                       selesai: <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />,
                       sedang_dikerjakan: <Clock className="w-4 h-4 text-blue-500 shrink-0" />,
-                      ditunda: <PauseCircle className="w-4 h-4 text-yellow-500 shrink-0" />,
                       belum_dimulai: <Circle className="w-4 h-4 text-slate-300 shrink-0" />,
                     }[task.status ?? 'belum_dimulai'] ?? <Circle className="w-4 h-4 text-slate-300 shrink-0" />;
 

@@ -112,7 +112,6 @@ export function MilestoneForm({
       {(!isControlled || trigger) && (
         <DialogTrigger 
           render={trigger || <Button variant="outline">Tambah Milestone</Button>} 
-          nativeButton={!trigger}
         />
       )}
       <DialogContent className="sm:max-w-[450px]">

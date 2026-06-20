@@ -14,6 +14,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
+const GOAL_TYPE_LABELS: Record<string, string> = {
+  mingguan: "Mingguan",
+  bulanan: "Bulanan",
+  tahunan: "Tahunan",
+  lifetime: "Lifetime",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  active: "Aktif",
+  completed: "Selesai",
+  archived: "Diarsipkan",
+};
+
 type GoalFormProps = {
   initialData?: GoalFormData & { id?: string };
   onSuccess?: () => void;
@@ -52,6 +65,7 @@ export function GoalForm({
         status: "active" as GoalStatus,
         target_date: "",
         progress: 0,
+        category: "",
       };
     }
     return {
@@ -61,6 +75,7 @@ export function GoalForm({
       status: initialData.status || "active",
       target_date: initialData.target_date || "",
       progress: initialData.progress || 0,
+      category: initialData.category || "",
     };
   }, [initialData]);
 
@@ -78,7 +93,8 @@ export function GoalForm({
   useEffect(() => {
     if (open) {
       reset(defaultValues);
-      setFormError(null);
+      const timer = setTimeout(() => setFormError(null), 0);
+      return () => clearTimeout(timer);
     }
   }, [open, reset, defaultValues]);
 
@@ -108,7 +124,6 @@ export function GoalForm({
       {(!isControlled || trigger) && (
         <DialogTrigger 
           render={trigger || <Button>Buat Tujuan Baru</Button>} 
-          nativeButton={!trigger}
         />
       )}
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -137,7 +152,9 @@ export function GoalForm({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih tipe" />
+                      <SelectValue placeholder="Pilih tipe">
+                        {field.value ? GOAL_TYPE_LABELS[field.value] : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="mingguan">Mingguan</SelectItem>
@@ -159,7 +176,9 @@ export function GoalForm({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih status" />
+                      <SelectValue placeholder="Pilih status">
+                        {field.value ? STATUS_LABELS[field.value] : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="active">Aktif</SelectItem>
@@ -176,6 +195,12 @@ export function GoalForm({
           <div className="space-y-2">
             <Label htmlFor="target_date">Tanggal Target Penyelesaian (Opsional)</Label>
             <Input id="target_date" type="date" {...register("target_date")} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Kategori (Opsional)</Label>
+            <Input id="category" placeholder="Misal: Finansial, Karir, Kesehatan, dll" {...register("category")} />
+            {errors.category && <p className="text-sm text-red-500">{errors.category.message}</p>}
           </div>
 
           {formError && (

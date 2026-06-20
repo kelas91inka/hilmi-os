@@ -16,7 +16,7 @@ interface TransactionFormDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   initialData?: {
-    id: string;
+    id?: string;
     type: 'income' | 'expense';
     amount: number;
     category?: string | null;
@@ -72,7 +72,7 @@ export function TransactionFormDialog({ trigger, open: controlledOpen, onOpenCha
     try {
       const validated = transactionSchema.parse(formData);
       
-      const result = initialData 
+      const result = (initialData && initialData.id) 
         ? await updateTransactionAction(initialData.id, validated)
         : await createTransactionAction(validated);
 
@@ -103,13 +103,16 @@ export function TransactionFormDialog({ trigger, open: controlledOpen, onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={
-        trigger || (
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Transaction
-          </Button>
-        )}
+      <DialogTrigger
+        nativeButton={trigger ? (trigger.type === 'button' || trigger.type === Button) : true}
+        render={
+          trigger || (
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Transaction
+            </Button>
+          )
+        }
       />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -120,23 +123,25 @@ export function TransactionFormDialog({ trigger, open: controlledOpen, onOpenCha
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>Tipe</Label>
               <Select 
                 value={formData.type} 
                 onValueChange={(val) => { if (val) setFormData({ ...formData, type: val as 'income' | 'expense' }) }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="Pilih tipe">
+                    {formData.type === 'expense' ? 'Pengeluaran' : formData.type === 'income' ? 'Pemasukan' : undefined}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="expense">Expense</SelectItem>
-                  <SelectItem value="income">Income</SelectItem>
+                  <SelectItem value="expense">Pengeluaran</SelectItem>
+                  <SelectItem value="income">Pemasukan</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">Tanggal</Label>
               <Input
                 id="date"
                 type="date"
@@ -148,26 +153,28 @@ export function TransactionFormDialog({ trigger, open: controlledOpen, onOpenCha
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (IDR)</Label>
+            <Label htmlFor="amount">Jumlah (IDR)</Label>
             <Input
               id="amount"
               type="number"
               min="0"
               value={formData.amount || ''}
               onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-              placeholder="e.g. 150000"
+              placeholder="Misal: 150000"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>Kategori</Label>
             <Select 
               value={formData.category || ''} 
               onValueChange={(val) => { if (val) setFormData({ ...formData, category: val }) }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="Pilih kategori">
+                  {formData.category || undefined}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map(cat => (

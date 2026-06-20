@@ -2,6 +2,13 @@
 
 import { useTransition } from 'react';
 import { Loader2, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -20,8 +27,6 @@ export function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   const [isPending, startTransition] = useTransition();
 
-  if (!open) return null;
-
   const handleConfirm = () => {
     startTransition(async () => {
       await onConfirm();
@@ -30,21 +35,20 @@ export function DeleteConfirmDialog({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget && !isPending) onClose(); }}
-    >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150" />
-      <div className="relative w-full max-w-sm bg-card border rounded-2xl shadow-2xl p-6 animate-in slide-in-from-bottom-2 duration-200">
-        {/* Icon */}
-        <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-          <Trash2 className="w-6 h-6 text-red-500" />
-        </div>
+    <Dialog open={open} onOpenChange={(val) => { if (!val && !isPending) onClose(); }}>
+      <DialogContent className="sm:max-w-sm p-6">
+        <DialogHeader className="flex flex-col items-center justify-center text-center">
+          {/* Icon */}
+          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+            <Trash2 className="w-6 h-6 text-red-500" />
+          </div>
+          <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground mt-2">
+            {description}
+          </DialogDescription>
+        </DialogHeader>
 
-        <h3 className="text-base font-semibold text-center mb-2">{title}</h3>
-        <p className="text-sm text-muted-foreground text-center mb-6">{description}</p>
-
-        <div className="flex gap-3">
+        <div className="flex gap-3 mt-4">
           <button
             onClick={onClose}
             disabled={isPending}
@@ -65,7 +69,7 @@ export function DeleteConfirmDialog({
             )}
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

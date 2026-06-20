@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { NoteWithDetails } from '../types/note.types';
 import { NoteEditor } from './NoteEditor';
 import { NoteLinkManager } from './NoteLinkManager';
+import { NoteTagManager } from './NoteTagManager';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Star, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
@@ -72,8 +73,8 @@ export const NoteView = ({ initialNote }: NoteViewProps) => {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">
-              Last saved: {lastSaved.toLocaleTimeString()}
+            <span className="text-xs text-muted-foreground">
+              Terakhir disimpan: {lastSaved.toLocaleTimeString('id-ID')}
             </span>
           </div>
         </div>
@@ -82,11 +83,11 @@ export const NoteView = ({ initialNote }: NoteViewProps) => {
           <div className="flex items-center text-xs mr-2">
             {isSaving ? (
               <span className="flex items-center text-blue-500 font-medium">
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Saving...
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Menyimpan...
               </span>
             ) : (
               <span className="flex items-center text-emerald-500 font-medium opacity-70">
-                <CheckCircle2 className="w-3 h-3 mr-1" /> Saved
+                <CheckCircle2 className="w-3 h-3 mr-1" /> Tersimpan
               </span>
             )}
           </div>
@@ -103,7 +104,7 @@ export const NoteView = ({ initialNote }: NoteViewProps) => {
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
             <Save className="w-4 h-4 mr-2" />
-            Save
+            Simpan
           </Button>
         </div>
       </div>
@@ -114,19 +115,21 @@ export const NoteView = ({ initialNote }: NoteViewProps) => {
           value={note.title}
           onChange={(e) => setNote(prev => ({ ...prev, title: e.target.value }))}
           className="text-4xl font-bold border-0 bg-transparent px-0 focus-visible:ring-0 shadow-none h-auto rounded-none pb-4"
-          placeholder="Note Title"
+          placeholder="Judul Catatan"
         />
       </div>
 
       {/* Tag and Link Section */}
-      <div className="flex items-center gap-4 px-2 pb-4 text-sm text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-6 px-2 pb-4 text-sm text-muted-foreground border-b border-border/40">
         <div className="flex items-center gap-2">
-          <span className="bg-muted px-2 py-1 rounded-md text-xs font-medium">
-            {note.tags?.length || 0} Tags
-          </span>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tags:</span>
+          <NoteTagManager noteId={note.id} initialTags={note.tags || []} />
         </div>
         
-        <NoteLinkManager noteId={note.id} initialLinks={note.links || []} />
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Koneksi:</span>
+          <NoteLinkManager noteId={note.id} initialLinks={note.links || []} />
+        </div>
       </div>
 
       {/* Editor */}
@@ -141,8 +144,8 @@ export const NoteView = ({ initialNote }: NoteViewProps) => {
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDelete}
-        title="Delete Note"
-        description={`Are you sure you want to delete "${note.title}"? This action cannot be undone.`}
+        title="Hapus Catatan"
+        description={`Apakah Anda yakin ingin menghapus catatan "${note.title}"? Tindakan ini tidak dapat dibatalkan.`}
       />
     </div>
   );

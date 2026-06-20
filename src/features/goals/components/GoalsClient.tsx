@@ -4,42 +4,39 @@ import { useState, useMemo } from "react";
 import { Goal, GoalType } from "../types/goal.types";
 import { GoalCard } from "./GoalCard";
 import { GoalForm } from "./GoalForm";
-import { Target, TrendingUp, Archive, Filter, SortAsc, CheckCircle2, Clock, ChevronDown, Search, X } from "lucide-react";
+import { Target, TrendingUp, Archive, Filter, CheckCircle2, Clock, ChevronDown, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageContextSetter } from "@/features/ai/components/PageContextSetter";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
+
 
 interface GoalsClientProps {
   goals: Goal[];
 }
 
 type FilterType = "all" | GoalType;
-type StatusFilter = "active" | "completed" | "archived";
 type SortBy = "newest" | "oldest" | "progress_asc" | "progress_desc" | "target_date";
 
 export function GoalsClient({ goals }: GoalsClientProps) {
   const [typeFilter, setTypeFilter] = useState<FilterType>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortBy>("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // Stats
   const activeGoals = goals.filter((g) => g.status === "active");
   const completedGoals = goals.filter((g) => g.status === "completed");
   const archivedGoals = goals.filter((g) => g.status === "archived");
 
-  // Type breakdown for active goals
-  const typeBreakdown = useMemo(() => {
-    const breakdown: Record<string, number> = {
-      mingguan: 0,
-      bulanan: 0,
-      tahunan: 0,
-      lifetime: 0,
-    };
-    activeGoals.forEach((g) => {
-      if (g.goal_type in breakdown) breakdown[g.goal_type]++;
-    });
-    return breakdown;
-  }, [activeGoals]);
+  // Extract unique categories dynamically
+  const categories = useMemo(() => {
+    const cats = goals.map((g) => g.category).filter((c): c is string => !!c);
+    return Array.from(new Set(cats)).sort();
+  }, [goals]);
 
   // Overall average progress (active goals only)
   const avgProgress = useMemo(() => {
@@ -53,39 +50,60 @@ export function GoalsClient({ goals }: GoalsClientProps) {
     let filtered = activeGoals;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(g => g.title.toLowerCase().includes(q) || g.description?.toLowerCase().includes(q));
+      filtered = filtered.filter(g => 
+        g.title.toLowerCase().includes(q) || 
+        g.description?.toLowerCase().includes(q) ||
+        g.category?.toLowerCase().includes(q)
+      );
     }
     if (typeFilter !== "all") {
       filtered = filtered.filter((g) => g.goal_type === typeFilter);
     }
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((g) => g.category === categoryFilter);
+    }
     return sortGoals(filtered, sortBy);
-  }, [activeGoals, typeFilter, sortBy]);
+  }, [activeGoals, typeFilter, categoryFilter, sortBy, searchQuery]);
 
   // Filtered completed goals
   const filteredCompleted = useMemo(() => {
     let filtered = completedGoals;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(g => g.title.toLowerCase().includes(q) || g.description?.toLowerCase().includes(q));
+      filtered = filtered.filter(g => 
+        g.title.toLowerCase().includes(q) || 
+        g.description?.toLowerCase().includes(q) ||
+        g.category?.toLowerCase().includes(q)
+      );
     }
     if (typeFilter !== "all") {
       filtered = filtered.filter((g) => g.goal_type === typeFilter);
     }
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((g) => g.category === categoryFilter);
+    }
     return sortGoals(filtered, sortBy);
-  }, [completedGoals, typeFilter, sortBy]);
+  }, [completedGoals, typeFilter, categoryFilter, sortBy, searchQuery]);
 
   // Filtered archived goals
   const filteredArchived = useMemo(() => {
     let filtered = archivedGoals;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(g => g.title.toLowerCase().includes(q) || g.description?.toLowerCase().includes(q));
+      filtered = filtered.filter(g => 
+        g.title.toLowerCase().includes(q) || 
+        g.description?.toLowerCase().includes(q) ||
+        g.category?.toLowerCase().includes(q)
+      );
     }
     if (typeFilter !== "all") {
       filtered = filtered.filter((g) => g.goal_type === typeFilter);
     }
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((g) => g.category === categoryFilter);
+    }
     return sortGoals(filtered, sortBy);
-  }, [archivedGoals, typeFilter, sortBy]);
+  }, [archivedGoals, typeFilter, categoryFilter, sortBy, searchQuery]);
 
   const typeTabs: { value: FilterType; label: string }[] = [
     { value: "all", label: "Semua" },
@@ -103,88 +121,114 @@ export function GoalsClient({ goals }: GoalsClientProps) {
     { value: "target_date", label: "Target Terdekat" },
   ];
 
+  const activeFilterCount = [
+    typeFilter !== 'all',
+    categoryFilter !== 'all',
+    sortBy !== 'newest',
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setTypeFilter('all');
+    setCategoryFilter('all');
+    setSortBy('newest');
+  };
+
   return (
     <div className="space-y-6">
+      <PageContextSetter context="Manajemen Tujuan" />
+      
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-5 rounded-2xl border glow-card">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Target className="h-8 w-8 text-primary" />
+          <h2 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Target className="h-7 w-7 text-primary" />
             Tujuan & Milestone
           </h2>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Lacak target jangka panjang dan rayakan setiap progress kecil.
           </p>
         </div>
-        <GoalForm />
       </div>
 
       {/* Analytics Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50 border p-4 rounded-xl flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-blue-600 dark:text-blue-400">Tujuan Aktif</p>
-            <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">
-              {activeGoals.length}
-            </p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Tujuan Aktif */}
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-blue-500">
+            <Target className="w-4 h-4" />
           </div>
-          <Target className="h-8 w-8 text-blue-200 dark:text-blue-800/50" />
+          <div>
+            <div className="text-xl font-bold leading-none text-blue-500">{activeGoals.length}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">Tujuan Aktif</div>
+          </div>
         </div>
-        <div className="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50 border p-4 rounded-xl flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Selesai</p>
-            <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">
-              {completedGoals.length}
-            </p>
+
+        {/* Selesai */}
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-emerald-500">
+            <CheckCircle2 className="w-4 h-4" />
           </div>
-          <CheckCircle2 className="h-8 w-8 text-emerald-200 dark:text-emerald-800/50" />
+          <div>
+            <div className="text-xl font-bold leading-none text-emerald-500">{completedGoals.length}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">Selesai</div>
+          </div>
         </div>
-        <div className="bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50 border p-4 rounded-xl flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-purple-600 dark:text-purple-400">Rata-rata Progress</p>
-            <p className="text-2xl font-bold text-purple-700 dark:text-purple-300 mt-1">
-              {avgProgress}%
-            </p>
+
+        {/* Rata-rata Progress */}
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-purple-500">
+            <TrendingUp className="w-4 h-4" />
           </div>
-          <TrendingUp className="h-8 w-8 text-purple-200 dark:text-purple-800/50" />
+          <div>
+            <div className="text-xl font-bold leading-none text-purple-500">{avgProgress}%</div>
+            <div className="text-xs text-muted-foreground mt-0.5">Rata-rata Progress</div>
+          </div>
         </div>
-        <div className="bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900/50 border p-4 rounded-xl flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-amber-600 dark:text-amber-400">Total</p>
-            <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-1">
-              {goals.length}
-            </p>
+
+        {/* Total */}
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-amber-500">
+            <Archive className="w-4 h-4" />
           </div>
-          <Archive className="h-8 w-8 text-amber-200" />
+          <div>
+            <div className="text-xl font-bold leading-none text-amber-500">{goals.length}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">Total</div>
+          </div>
         </div>
       </div>
 
-      {/* Type Breakdown (active goals only) */}
-      {activeGoals.length > 0 && (
-        <div className="grid grid-cols-4 gap-3">
-          {Object.entries(typeBreakdown).map(([type, count]) => (
+      {/* Type Filter Tabs */}
+      <div className="flex bg-muted/60 p-1 rounded-xl border gap-1 overflow-x-auto scrollbar-none">
+        {typeTabs.map(tab => {
+          const isActive = typeFilter === tab.value;
+          // Count active goals for this type
+          const count = tab.value === 'all' 
+            ? activeGoals.length 
+            : activeGoals.filter(g => g.goal_type === tab.value).length;
+
+          return (
             <button
-              key={type}
-              onClick={() =>
-                setTypeFilter((prev) =>
-                  prev === type ? "all" : (type as GoalType)
-                )
-              }
-              className={`p-3 rounded-lg border text-center transition-all ${
-                typeFilter === type
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30 ring-1 ring-blue-500"
-                  : "border-border bg-card hover:border-primary/30"
+              key={tab.value}
+              onClick={() => setTypeFilter(tab.value)}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                isActive
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
               }`}
             >
-              <p className="text-lg font-bold text-foreground">{count}</p>
-              <p className="text-xs text-muted-foreground capitalize">{type}</p>
+              <span className="capitalize">{tab.label}</span>
+              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                isActive ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground/15 text-muted-foreground'
+              }`}>
+                {count}
+              </span>
             </button>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
       {/* Controls Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center bg-card p-4 rounded-xl border">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center bg-card p-4 rounded-2xl border glow-card">
         {/* Search */}
         <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -205,35 +249,104 @@ export function GoalsClient({ goals }: GoalsClientProps) {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          {/* Select Type */}
-          <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val as FilterType)}>
-            <SelectTrigger className="w-[140px] h-9 text-xs">
-              <SelectValue placeholder="Semua Tipe" />
-            </SelectTrigger>
-            <SelectContent>
-              {typeTabs.map(tab => (
-                 <SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+            <PopoverTrigger
+              id="goal-filter-btn"
+              className={`flex items-center gap-1.5 text-xs px-3 h-9 rounded-xl border transition-colors ${
+                activeFilterCount > 0
+                  ? 'bg-primary/10 border-primary/30 text-primary font-semibold'
+                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Filter className="w-3.5 h-3.5" />
+              Filter
+              {activeFilterCount > 0 && (
+                <span className="bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-4" align="end">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-foreground">Filter Lanjutan</h4>
+                  {activeFilterCount > 0 && (
+                    <button
+                      onClick={clearFilters}
+                      className="text-[10px] text-primary hover:underline font-semibold"
+                    >
+                      Reset semua
+                    </button>
+                  )}
+                </div>
 
-          {/* Select Sort */}
-          <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortBy)}>
-            <SelectTrigger className="w-[140px] h-9 text-xs">
-              <SelectValue placeholder="Urutkan" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map(opt => (
-                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                <div className="space-y-3">
+                  {/* Select Type */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tipe</label>
+                    <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val as FilterType)}>
+                      <SelectTrigger className="w-full h-8 text-xs">
+                        <SelectValue placeholder="Semua Tipe">
+                          {typeTabs.find(t => t.value === typeFilter)?.label}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {typeTabs.map(tab => (
+                           <SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Select Category */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Kategori</label>
+                    <Select value={categoryFilter} onValueChange={(val) => setCategoryFilter(val || "all")}>
+                      <SelectTrigger className="w-full h-8 text-xs">
+                        <SelectValue placeholder="Semua Kategori">
+                          {categoryFilter === 'all' ? 'Semua Kategori' : categoryFilter}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Kategori</SelectItem>
+                        {categories.map(cat => (
+                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Select Sort */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Urutan</label>
+                    <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortBy)}>
+                      <SelectTrigger className="w-full h-8 text-xs">
+                        <SelectValue placeholder="Urutkan">
+                          {sortOptions.find(opt => opt.value === sortBy)?.label}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sortOptions.map(opt => (
+                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <GoalForm />
         </div>
       </div>
 
+
+
       {/* Active Goals */}
       <div>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-foreground">
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-foreground">
           <Clock className="h-4 w-4 text-blue-500" />
           Tujuan Aktif
           {filteredActive.length > 0 && (
@@ -258,7 +371,7 @@ export function GoalsClient({ goals }: GoalsClientProps) {
       {/* Completed Goals */}
       {filteredCompleted.length > 0 && (
         <div className="pt-6 border-t">
-          <h2 className="text-lg font-semibold mb-4 text-muted-foreground flex items-center gap-2">
+          <h2 className="text-lg font-bold mb-4 text-muted-foreground flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             Tujuan Selesai
             <span className="text-xs text-muted-foreground font-normal">
@@ -274,7 +387,7 @@ export function GoalsClient({ goals }: GoalsClientProps) {
         <div className="pt-6 border-t">
           <button
             onClick={() => setShowArchived(!showArchived)}
-            className="flex items-center gap-2 text-lg font-semibold text-muted-foreground hover:text-foreground transition-colors mb-4"
+            className="flex items-center gap-2 text-lg font-bold text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
             <Archive className="h-4 w-4" />
             Diarsipkan
@@ -298,6 +411,8 @@ export function GoalsClient({ goals }: GoalsClientProps) {
 
 // Helpers
 
+import { EmptyState } from "@/components/shared/empty-state";
+
 function GoalList({
   goals,
   emptyMessage,
@@ -309,13 +424,15 @@ function GoalList({
 }) {
   if (!goals || goals.length === 0) {
     return (
-      <div className="text-center py-16 border-2 border-dashed rounded-xl bg-card">
-        <Target className="h-10 w-10 mb-4 text-muted-foreground/30" />
-        <p className="text-center mb-4">{emptyMessage}</p>
-        {action && action}
-      </div>
+      <EmptyState
+        icon={<Target className="h-6 w-6" />}
+        title="Tidak ada tujuan"
+        description={emptyMessage}
+        action={action}
+      />
     );
   }
+
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

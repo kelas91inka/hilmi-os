@@ -44,6 +44,7 @@ export const goalRepository = {
         status: goal.status,
         target_date: goal.target_date || null,
         progress: goal.progress,
+        category: goal.category || null,
       })
       .select()
       .single();
@@ -54,10 +55,13 @@ export const goalRepository = {
 
   async updateGoal(id: string, goal: Partial<GoalFormData>): Promise<Goal> {
     const supabase = await createClient();
-    // Convert empty string for dates to null to prevent 22P02 Postgres errors
+    // Convert empty string for dates and category to null to prevent errors and clean database
     const updateData = { ...goal };
     if (updateData.target_date === '') {
         updateData.target_date = null;
+    }
+    if (updateData.category === '') {
+        updateData.category = null;
     }
     
     const { data, error } = await supabase

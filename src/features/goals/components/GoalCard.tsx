@@ -12,7 +12,7 @@ import { DeleteConfirmDialog } from "@/features/tasks/components/DeleteConfirmDi
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Progress, ProgressTrack, ProgressIndicator } from "@/components/ui/progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,9 +31,9 @@ export function GoalCard({ goal }: GoalCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const statusConfig: Record<string, { label: string; className: string }> = {
-    active: { label: "Aktif", className: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-transparent" },
-    completed: { label: "Selesai", className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-transparent" },
-    archived: { label: "Diarsipkan", className: "bg-slate-800/15 text-slate-900 dark:text-slate-300 border-transparent" },
+    active: { label: "Aktif", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" },
+    completed: { label: "Selesai", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" },
+    archived: { label: "Diarsipkan", className: "bg-muted text-muted-foreground border border-border" },
   };
 
   const typeLabels: Record<string, string> = {
@@ -44,32 +44,39 @@ export function GoalCard({ goal }: GoalCardProps) {
   };
 
   const handleDelete = async () => {
-    await deleteGoalAction(goal.id);
+    console.log("[GoalCard - Delete] handleDelete triggered for goal ID:", goal.id);
+    const res = await deleteGoalAction(goal.id);
+    console.log("[GoalCard - Delete] Server Action response:", res);
   };
 
   const currentStatus = statusConfig[goal.status] || statusConfig.active;
 
   return (
     <>
-      <Card className="relative flex flex-col transition-all hover:shadow-sm hover:border-primary/40 group overflow-hidden">
+      <Card className="glow-card relative flex flex-col rounded-2xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary/25 hover-border-primary group overflow-hidden">
         <CardHeader className="p-5 pb-3 flex flex-row items-start justify-between space-y-0">
           <div className="flex-1 min-w-0 pr-4">
             <Link href={`/portal/goals/${goal.id}`} className="hover:text-primary transition-colors">
               <h3 className="font-bold text-lg truncate flex items-center gap-2">
-                <Target className="h-4 w-4 text-slate-500 shrink-0" />
+                <Target className="h-4 w-4 text-muted-foreground shrink-0" />
                 {goal.title}
               </h3>
             </Link>
-            <div className="flex items-center text-xs text-slate-500 mt-1.5 gap-4">
+            <div className="flex flex-wrap items-center text-xs text-muted-foreground mt-1.5 gap-2">
               {goal.target_date && (
-                <div className="flex items-center">
+                <div className="flex items-center mr-2">
                   <CalendarIcon className="mr-1.5 h-3 w-3" />
                   Target: {format(new Date(goal.target_date), "dd MMM yyyy")}
                 </div>
               )}
-              <Badge variant="outline" className="font-medium text-[10px] py-0 px-1.5 h-5">
+              <Badge variant="outline" className="font-medium text-[10px] py-0 px-1.5 h-5 shrink-0">
                 {typeLabels[goal.goal_type] || goal.goal_type}
               </Badge>
+              {goal.category && (
+                <Badge variant="secondary" className="font-medium text-[10px] py-0 px-1.5 h-5 shrink-0 bg-primary/10 text-primary border-transparent dark:bg-primary/20">
+                  {goal.category}
+                </Badge>
+              )}
             </div>
           </div>
           
@@ -79,17 +86,32 @@ export function GoalCard({ goal }: GoalCardProps) {
               <span className="sr-only">Menu</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => router.push(`/portal/goals/${goal.id}`)}>
+              <DropdownMenuItem onClick={() => {
+                console.log("[GoalCard - Click] Lihat Detail clicked for goal:", goal.id);
+                router.push(`/portal/goals/${goal.id}`);
+              }}>
                 <Eye className="mr-2 h-4 w-4" />
                 Lihat Detail
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setTimeout(() => setIsEditDialogOpen(true), 100)}>
+              <DropdownMenuItem onClick={() => {
+                console.log("[GoalCard - Click] Edit Tujuan clicked for goal:", goal.id);
+                setTimeout(() => {
+                  setIsEditDialogOpen(true);
+                  console.log("[GoalCard - State] Set isEditDialogOpen to true");
+                }, 100);
+              }}>
                 Edit Tujuan
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
-                onSelect={() => setTimeout(() => setIsDeleteDialogOpen(true), 100)}
+                onClick={() => {
+                  console.log("[GoalCard - Click] Hapus clicked for goal:", goal.id);
+                  setTimeout(() => {
+                    setIsDeleteDialogOpen(true);
+                    console.log("[GoalCard - State] Set isDeleteDialogOpen to true");
+                  }, 100);
+                }}
               >
                 <Trash className="mr-2 h-4 w-4" />
                 Hapus
@@ -99,24 +121,34 @@ export function GoalCard({ goal }: GoalCardProps) {
         </CardHeader>
         
         <CardContent className="p-5 pt-3 flex-1 flex flex-col justify-between">
-          <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mt-1 mb-4">
+          <p className="text-sm text-muted-foreground line-clamp-2 mt-1 mb-4">
             {goal.description || <span className="italic opacity-60">Tidak ada deskripsi</span>}
           </p>
           
-          <div className="space-y-3 mt-auto">
+          <div className="space-y-4 mt-auto">
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-slate-600">Progres</span>
-                <span className="font-bold">{goal.progress}%</span>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Progres</span>
+                <span className={`font-semibold ${
+                  goal.progress >= 80 ? 'text-emerald-500' :
+                  goal.progress >= 50 ? 'text-primary' : 'text-amber-500'
+                }`}>{goal.progress}%</span>
               </div>
-              <Progress value={goal.progress} className="h-1.5" />
+              <Progress value={goal.progress} className="w-full flex-col gap-0">
+                <ProgressTrack className="h-1.5 rounded-full">
+                  <ProgressIndicator className={
+                    goal.progress >= 80 ? 'bg-emerald-500' :
+                    goal.progress >= 50 ? 'bg-primary' : 'bg-amber-500'
+                  } />
+                </ProgressTrack>
+              </Progress>
             </div>
             
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2 pt-2 border-t border-border/50">
               {goal.status && (
-                <Badge variant="secondary" className={`${currentStatus.className} text-[10px] px-2 py-0.5 font-medium`}>
+                <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${currentStatus.className}`}>
                   {currentStatus.label}
-                </Badge>
+                </span>
               )}
             </div>
           </div>
@@ -134,6 +166,7 @@ export function GoalCard({ goal }: GoalCardProps) {
           goal_type: goal.goal_type,
           target_date: goal.target_date ? goal.target_date.split('T')[0] : "",
           progress: goal.progress,
+          category: goal.category || "",
         }} 
       />
 

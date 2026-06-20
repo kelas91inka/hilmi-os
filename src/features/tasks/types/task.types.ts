@@ -15,7 +15,6 @@ export const TASK_STATUS = {
   BELUM_DIMULAI: "belum_dimulai",
   SEDANG_DIKERJAKAN: "sedang_dikerjakan",
   SELESAI: "selesai",
-  DITUNDA: "ditunda",
 } as const;
 
 export type TaskStatus = typeof TASK_STATUS[keyof typeof TASK_STATUS];

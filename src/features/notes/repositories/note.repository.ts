@@ -3,11 +3,15 @@ import { Note, NoteLink, NoteTag, NoteWithDetails } from '../types/note.types';
 import { NoteFormData, NoteLinkFormData } from '../validators/note.schema';
 
 export const noteRepository = {
-  async getNotes(searchQuery?: string): Promise<Note[]> {
+  async getNotes(searchQuery?: string): Promise<NoteWithDetails[]> {
     const supabase = await createClient();
     let query = supabase
       .from('notes')
-      .select('*')
+      .select(`
+        *,
+        tags:note_tags(*),
+        links:note_links(*)
+      `)
       .order('updated_at', { ascending: false });
 
     if (searchQuery) {
@@ -17,7 +21,7 @@ export const noteRepository = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []) as Note[];
+    return (data || []) as unknown as NoteWithDetails[];
   },
 
   async getNotesByLinkedId(linkedType: string, linkedId: string): Promise<Note[]> {

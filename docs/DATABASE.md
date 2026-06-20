@@ -326,6 +326,8 @@ target_date DATE
 
 progress INTEGER
 
+category TEXT
+
 created_at
 updated_at
 ```

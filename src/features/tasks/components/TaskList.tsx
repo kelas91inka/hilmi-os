@@ -4,7 +4,7 @@ import { TaskWithTags, TASK_STATUS } from '../types/task.types';
 import { Project } from '@/features/projects/types/project.types';
 import { Goal } from '@/features/goals/types/goal.types';
 import { TaskItem } from './TaskItem';
-import { AlertCircle, Circle, Clock, CheckCircle2, PauseCircle } from 'lucide-react';
+import { AlertCircle, Circle, Clock, CheckCircle2 } from 'lucide-react';
 import { isPast, isToday, parseISO } from 'date-fns';
 
 interface TaskListProps {
@@ -26,12 +26,6 @@ const STATUS_CONFIG = {
     iconColor: 'text-muted-foreground',
     dotColor: 'bg-muted-foreground',
   },
-  [TASK_STATUS.DITUNDA]: {
-    label: 'Ditunda',
-    icon: PauseCircle,
-    iconColor: 'text-orange-500',
-    dotColor: 'bg-orange-400',
-  },
   [TASK_STATUS.SELESAI]: {
     label: 'Selesai',
     icon: CheckCircle2,
@@ -44,7 +38,6 @@ const STATUS_CONFIG = {
 const STATUS_ORDER = [
   TASK_STATUS.SEDANG_DIKERJAKAN,
   TASK_STATUS.BELUM_DIMULAI,
-  TASK_STATUS.DITUNDA,
   TASK_STATUS.SELESAI,
 ];
 
@@ -69,7 +62,7 @@ export function TaskList({ tasks, projects, goals }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-16 border-2 border-dashed rounded-xl bg-card">
+      <div className="text-center py-16 border-2 border-dashed rounded-2xl bg-card">
         <p className="text-muted-foreground text-sm">Tidak ada tugas yang sesuai dengan kriteria.</p>
       </div>
     );
@@ -82,7 +75,7 @@ export function TaskList({ tasks, projects, goals }: TaskListProps) {
         <div className="space-y-3">
           <div className="flex items-center gap-2 pb-2 border-b border-red-500/20">
             <AlertCircle className="w-4 h-4 text-red-500" />
-            <h3 className="font-semibold text-sm text-red-600 dark:text-red-400 uppercase tracking-wider">
+            <h3 className="font-bold text-sm text-red-600 dark:text-red-400 uppercase tracking-wider">
               Terlambat
             </h3>
             <span className="text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded-full">
@@ -109,7 +102,7 @@ export function TaskList({ tasks, projects, goals }: TaskListProps) {
           <div key={status} className="space-y-3">
             <div className="flex items-center gap-2 pb-2 border-b">
               <Icon className={`w-4 h-4 ${config.iconColor}`} />
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">
+              <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">
                 {config.label}
               </h3>
               <span className={`text-xs text-white font-bold px-2 py-0.5 rounded-full ${config.dotColor}`}>

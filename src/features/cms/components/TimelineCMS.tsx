@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { format, parseISO } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { Plus, Edit2, Trash2, CalendarDays } from 'lucide-react';
+import { Plus, Edit2, Trash2, CalendarDays, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -137,16 +138,26 @@ export function TimelineCMS({ initialItems }: { initialItems: TimelineEvent[] })
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold">Timeline Perjalanan</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">{items.length} event terdaftar</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card/60 backdrop-blur-xs p-5 rounded-2xl border glow-card">
+        <div className="flex items-center gap-3">
+          <Link href="/portal/cms">
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-xl hover:bg-muted">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <div>
+            <h2 className="text-xl font-bold font-display tracking-tight flex items-center gap-2">
+              <CalendarDays className="w-5.5 h-5.5 text-primary" />
+              Kelola Linimasa
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{items.length} event terdaftar</p>
+          </div>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger render={
-            <Button onClick={() => { setEditingItem(null); setIsDialogOpen(true); }}>
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah
+            <Button onClick={() => { setEditingItem(null); setIsDialogOpen(true); }} className="rounded-xl font-semibold gap-1.5 shadow-sm">
+              <Plus className="w-4 h-4" />
+              Tambah Event
             </Button>
           } />
           <DialogContent className="max-w-lg">
@@ -168,39 +179,40 @@ export function TimelineCMS({ initialItems }: { initialItems: TimelineEvent[] })
       </div>
 
       {sorted.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed rounded-xl bg-card">
+        <div className="text-center py-20 border-2 border-dashed rounded-2xl bg-card/45 backdrop-blur-xs">
           <CalendarDays className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-muted-foreground">Belum ada event timeline. Tambahkan yang pertama!</p>
+          <p className="text-muted-foreground font-medium">Belum ada event timeline.</p>
+          <p className="text-xs text-muted-foreground/75 mt-1">Tambahkan event linimasa pertama Anda dengan tombol di atas.</p>
         </div>
       ) : (
         <div className="relative">
-          <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
+          <div className="absolute left-4 top-0 bottom-0 w-px bg-border/60" />
           <div className="space-y-4 pl-12">
             {sorted.map((item) => (
               <div key={item.id} className="relative group">
-                <div className="absolute -left-12 w-8 h-8 rounded-full border-2 border-primary bg-background flex items-center justify-center">
+                <div className="absolute -left-12 w-8 h-8 rounded-full border-2 border-primary/50 bg-background flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                   <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-start gap-3 p-4 rounded-xl border dark:border-slate-800 bg-card hover:border-primary/30 dark:hover:bg-slate-900/50 transition-colors group">
+                <div className="glow-card relative flex flex-col sm:flex-row sm:items-start gap-3 p-5 rounded-2xl border dark:border-slate-800 bg-card/45 backdrop-blur-xs hover:border-primary/25 hover:shadow-lg transition-all duration-300 group overflow-hidden">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-sm">{item.title}</h3>
+                      <h3 className="font-bold text-sm text-foreground leading-snug">{item.title}</h3>
                     </div>
                     {item.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{item.description}</p>
                     )}
                     {item.event_date && (
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <CalendarDays className="w-3 h-3" />
+                      <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5 font-medium">
+                        <CalendarDays className="w-3.5 h-3.5 text-primary/70" />
                         {format(parseISO(item.event_date), 'MMMM yyyy', { locale: localeId })}
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 sm:shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity self-end sm:self-auto mt-2 sm:mt-0">
+                  <div className="flex items-center gap-1.5 sm:shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity self-end sm:self-auto mt-2 sm:mt-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
                       onClick={() => {
                         setEditingItem(item);
                         setIsDialogOpen(true);
@@ -211,7 +223,7 @@ export function TimelineCMS({ initialItems }: { initialItems: TimelineEvent[] })
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => confirmDelete(item)}
                       disabled={isPending}
                     >

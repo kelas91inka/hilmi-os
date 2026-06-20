@@ -154,3 +154,74 @@ export async function deleteTimelineEventAction(id: string) {
   revalidatePath('/timeline');
   return { success: true };
 }
+
+// ─── Gallery Actions ──────────────────────────────────────────────────
+
+const gallerySchema = z.object({
+  title: z.string().min(1, 'Judul wajib diisi'),
+  image_url: z.string().min(1, 'Gambar wajib diunggah atau memiliki URL'),
+  description: z.string().optional(),
+});
+
+export async function createGalleryItemAction(formData: FormData) {
+  const raw = {
+    title: formData.get('title') as string,
+    image_url: formData.get('image_url') as string,
+    description: (formData.get('description') as string) || undefined,
+  };
+
+  const parsed = gallerySchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from('gallery').insert({
+    title: parsed.data.title,
+    image_url: parsed.data.image_url,
+    description: parsed.data.description ?? null,
+  });
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath('/portal/cms/gallery');
+  revalidatePath('/gallery');
+  return { success: true };
+}
+
+export async function updateGalleryItemAction(id: string, formData: FormData) {
+  const raw = {
+    title: formData.get('title') as string,
+    image_url: formData.get('image_url') as string,
+    description: (formData.get('description') as string) || undefined,
+  };
+
+  const parsed = gallerySchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('gallery')
+    .update({
+      title: parsed.data.title,
+      image_url: parsed.data.image_url,
+      description: parsed.data.description ?? null,
+    })
+    .eq('id', id);
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath('/portal/cms/gallery');
+  revalidatePath('/gallery');
+  return { success: true };
+}
+
+export async function deleteGalleryItemAction(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('gallery').delete().eq('id', id);
+  if (error) return { success: false, error: error.message };
+  revalidatePath('/portal/cms/gallery');
+  revalidatePath('/gallery');
+  return { success: true };
+}
+

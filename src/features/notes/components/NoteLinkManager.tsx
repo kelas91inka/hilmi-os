@@ -38,7 +38,7 @@ export function NoteLinkManager({ noteId, initialLinks }: NoteLinkManagerProps) 
     
     try {
       const [projects, goals, tasks] = await Promise.all([
-        supabase.from('projects').select('id, title').eq('status', 'active').order('updated_at', { ascending: false }).limit(15),
+        supabase.from('projects').select('id, title').neq('status', 'archived').order('updated_at', { ascending: false }).limit(15),
         supabase.from('goals').select('id, title').eq('status', 'active').order('updated_at', { ascending: false }).limit(15),
         supabase.from('tasks').select('id, title').neq('status', 'selesai').order('updated_at', { ascending: false }).limit(20)
       ]);
@@ -58,6 +58,11 @@ export function NoteLinkManager({ noteId, initialLinks }: NoteLinkManagerProps) 
   };
 
   const handleLink = async (option: LinkOption) => {
+    // Prevent duplicates
+    if (links.some(l => l.linked_type === option.type && l.linked_id === option.id)) {
+      return;
+    }
+    
     setOpen(false);
     // Optimistic UI
     const tempId = `temp-${Date.now()}`;
@@ -111,7 +116,8 @@ export function NoteLinkManager({ noteId, initialLinks }: NoteLinkManagerProps) 
           <span className="capitalize">{link.linked_type} Link</span>
           <button 
             onClick={() => handleUnlink(link.id)}
-            className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+            className="text-muted-foreground/60 hover:text-destructive transition-colors ml-1"
+            title="Hapus Koneksi"
           >
             <X className="w-3 h-3" />
           </button>
@@ -130,28 +136,34 @@ export function NoteLinkManager({ noteId, initialLinks }: NoteLinkManagerProps) 
             <CommandList>
               <CommandEmpty>{loading ? 'Loading...' : 'No results found.'}</CommandEmpty>
               <CommandGroup heading="Projects">
-                {options.filter(o => o.type === 'project').map(o => (
-                  <CommandItem key={o.id} onSelect={() => handleLink(o)}>
-                    <FolderKanban className="w-4 h-4 mr-2 text-blue-500" />
-                    {o.title}
-                  </CommandItem>
-                ))}
+                {options
+                  .filter(o => o.type === 'project' && !links.some(l => l.linked_type === 'project' && l.linked_id === o.id))
+                  .map(o => (
+                    <CommandItem key={o.id} onSelect={() => handleLink(o)}>
+                      <FolderKanban className="w-4 h-4 mr-2 text-blue-500" />
+                      {o.title}
+                    </CommandItem>
+                  ))}
               </CommandGroup>
               <CommandGroup heading="Goals">
-                {options.filter(o => o.type === 'goal').map(o => (
-                  <CommandItem key={o.id} onSelect={() => handleLink(o)}>
-                    <Target className="w-4 h-4 mr-2 text-purple-500" />
-                    {o.title}
-                  </CommandItem>
-                ))}
+                {options
+                  .filter(o => o.type === 'goal' && !links.some(l => l.linked_type === 'goal' && l.linked_id === o.id))
+                  .map(o => (
+                    <CommandItem key={o.id} onSelect={() => handleLink(o)}>
+                      <Target className="w-4 h-4 mr-2 text-purple-500" />
+                      {o.title}
+                    </CommandItem>
+                  ))}
               </CommandGroup>
               <CommandGroup heading="Tasks">
-                {options.filter(o => o.type === 'task').map(o => (
-                  <CommandItem key={o.id} onSelect={() => handleLink(o)}>
-                    <CheckSquare className="w-4 h-4 mr-2 text-green-500" />
-                    <span className="truncate">{o.title}</span>
-                  </CommandItem>
-                ))}
+                {options
+                  .filter(o => o.type === 'task' && !links.some(l => l.linked_type === 'task' && l.linked_id === o.id))
+                  .map(o => (
+                    <CommandItem key={o.id} onSelect={() => handleLink(o)}>
+                      <CheckSquare className="w-4 h-4 mr-2 text-green-500" />
+                      <span className="truncate">{o.title}</span>
+                    </CommandItem>
+                  ))}
               </CommandGroup>
             </CommandList>
           </Command>

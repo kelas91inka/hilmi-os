@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { getSettingsAction } from '@/features/settings/actions/settings.actions';
 import { SettingsForm } from '@/features/settings/components/SettingsForm';
+import { PageContextSetter } from '@/features/ai/components/PageContextSetter';
 import { Settings } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -20,14 +21,15 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="flex-1 space-y-6 max-w-5xl mx-auto">
+      <PageContextSetter context="Pengaturan Sistem" />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-5 rounded-2xl border glow-card">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Settings className="w-8 h-8 text-primary" />
+          <h2 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Settings className="w-7 h-7 text-primary" />
             Pengaturan
           </h2>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Kelola preferensi dan sistem Hilmi OS.
           </p>
         </div>
@@ -37,3 +39,4 @@ export default async function SettingsPage() {
     </div>
   );
 }
+

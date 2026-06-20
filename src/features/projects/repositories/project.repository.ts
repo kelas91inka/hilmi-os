@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { Project, ProjectWithDetails } from "../types/project.types";
+import { Project, ProjectWithDetails, ProjectTimelineEvent } from "../types/project.types";
 
 export type ProjectInsert = Omit<Project, "id" | "created_at" | "updated_at">;
 export type ProjectUpdate = Partial<Omit<Project, "id" | "user_id" | "created_at" | "updated_at">>;
@@ -93,6 +93,33 @@ export const projectRepository = {
   async deleteProject(id: string): Promise<void> {
     const supabase = await createClient();
     const { error } = await supabase.from("projects").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async createProjectTimelineEvent(
+    projectId: string,
+    eventData: { title: string; description?: string | null; event_date?: string | null }
+  ): Promise<ProjectTimelineEvent> {
+    const supabase = await createClient();
+    
+    const { data, error } = await supabase
+      .from("project_timeline")
+      .insert({
+        project_id: projectId,
+        title: eventData.title,
+        description: eventData.description || null,
+        event_date: eventData.event_date || null,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as ProjectTimelineEvent;
+  },
+
+  async deleteProjectTimelineEvent(id: string): Promise<void> {
+    const supabase = await createClient();
+    const { error } = await supabase.from("project_timeline").delete().eq("id", id);
     if (error) throw error;
   }
 };

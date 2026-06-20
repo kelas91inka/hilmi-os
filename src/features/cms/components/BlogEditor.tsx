@@ -13,6 +13,8 @@ import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Save, Trash2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { DeleteConfirmDialog } from '@/features/tasks/components/DeleteConfirmDialog';
+import { ImageUploader } from '@/components/shared/image-uploader';
+
 
 export function BlogEditor({ blog }: { blog: Blog }) {
   const router = useRouter();
@@ -144,11 +146,10 @@ export function BlogEditor({ blog }: { blog: Blog }) {
               </div>
 
               <div className="space-y-2 pt-2">
-                <Label htmlFor="cover">Cover Image URL</Label>
-                <Input 
-                  id="cover" 
-                  value={formData.cover_image} 
-                  onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })} 
+                <ImageUploader
+                  label="Cover Image"
+                  value={formData.cover_image}
+                  onChange={(url) => setFormData({ ...formData, cover_image: url })}
                   placeholder="https://..."
                 />
               </div>

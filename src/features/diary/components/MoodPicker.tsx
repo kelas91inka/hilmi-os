@@ -9,13 +9,13 @@ interface MoodPickerProps {
 }
 
 const moods: { value: Mood; emoji: string; label: string }[] = [
-  { value: 'happy', emoji: '😄', label: 'Happy' },
-  { value: 'productive', emoji: '🚀', label: 'Productive' },
-  { value: 'neutral', emoji: '😐', label: 'Neutral' },
-  { value: 'tired', emoji: '🥱', label: 'Tired' },
-  { value: 'stressed', emoji: '🤯', label: 'Stressed' },
-  { value: 'sad', emoji: '😔', label: 'Sad' },
-  { value: 'sick', emoji: '🤒', label: 'Sick' },
+  { value: 'happy', emoji: '😄', label: 'Bahagia' },
+  { value: 'productive', emoji: '🚀', label: 'Produktif' },
+  { value: 'neutral', emoji: '😐', label: 'Netral' },
+  { value: 'tired', emoji: '🥱', label: 'Lelah' },
+  { value: 'stressed', emoji: '🤯', label: 'Stres' },
+  { value: 'sad', emoji: '😔', label: 'Sedih' },
+  { value: 'sick', emoji: '🤒', label: 'Sakit' },
 ];
 
 export function MoodPicker({ value, onChange }: MoodPickerProps) {

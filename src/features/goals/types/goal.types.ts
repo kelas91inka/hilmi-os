@@ -10,6 +10,7 @@ export interface Goal {
   status: GoalStatus;
   target_date: string | null; // ISO Date string (YYYY-MM-DD)
   progress: number;
+  category: string | null;
   created_at: string;
   updated_at: string;
 }
