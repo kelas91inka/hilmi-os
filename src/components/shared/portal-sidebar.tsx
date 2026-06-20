@@ -64,7 +64,7 @@ const navSections: NavSection[] = [
   {
     label: 'Lainnya',
     items: [
-      { name: 'Blog', href: '/portal/cms', icon: FileText },
+      { name: 'CMS', href: '/portal/cms', icon: FileText },
       { name: 'Pengaturan', href: '/portal/settings', icon: Settings },
     ],
   },
