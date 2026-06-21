@@ -1,22 +1,29 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
-import { format, parseISO } from 'date-fns';
-import { id } from 'date-fns/locale';
 import Link from 'next/link';
-import { ArrowRight, ExternalLink, FolderKanban } from 'lucide-react';
+import { ExternalLink, FolderKanban } from 'lucide-react';
+import { getStatusLabel, translations, type Language } from '@/lib/i18n';
+import { getLanguageServer } from '@/lib/i18n-server';
 
-export const metadata: Metadata = {
-  title: 'Proyek | Hilmi OS',
-  description: 'Koleksi proyek yang sedang dan pernah dibangun oleh Muhammad Hilmi Mu\'afa.',
-};
+interface Project {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string | null;
+  status?: string | null;
+  cover_image?: string | null;
+}
 
-const STATUS_LABELS: Record<string, string> = {
-  planning: 'Perencanaan',
-  active: 'Aktif',
-  paused: 'Dijeda',
-  completed: 'Selesai',
-  archived: 'Diarsipkan',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLanguageServer();
+  return {
+    title: lang === 'en' ? 'Projects | Hilmi OS' : 'Proyek | Hilmi OS',
+    description: lang === 'en'
+      ? 'Collection of projects built and currently being built by Muhammad Hilmi Mu\'afa.'
+      : 'Koleksi proyek yang sedang dan pernah dibangun oleh Muhammad Hilmi Mu\'afa.',
+  };
+}
+
 const STATUS_COLORS: Record<string, string> = {
   planning: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400',
   active: 'bg-green-500/10 text-green-700 dark:text-green-400',
@@ -38,6 +45,9 @@ async function getProjects() {
 
 export default async function ProjectsPage() {
   const projects = await getProjects();
+  const lang = await getLanguageServer();
+  const t = translations[lang];
+
   const activeProjects = projects.filter(p => p.status === 'active');
   const otherProjects = projects.filter(p => p.status !== 'active');
 
@@ -45,21 +55,20 @@ export default async function ProjectsPage() {
     <div className="container mx-auto max-w-5xl px-4 py-16 sm:py-24 space-y-16">
       {/* Header */}
       <div className="space-y-4">
-        <p className="text-sm font-medium text-primary uppercase tracking-wider">Proyek</p>
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">Yang Sedang Saya Bangun</h1>
+        <p className="text-sm font-medium text-primary uppercase tracking-wider">{t.projects.title}</p>
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">{t.projects.subtitle}</h1>
         <p className="text-lg text-muted-foreground max-w-2xl">
-          Kumpulan proyek yang mencerminkan eksplorasi saya di bidang teknologi — dari infrastruktur jaringan 
-          hingga aplikasi web modern.
+          {t.projects.description}
         </p>
       </div>
 
       {/* Active Projects */}
       {activeProjects.length > 0 && (
         <section className="space-y-6">
-          <h2 className="text-xl font-bold">🟢 Sedang Aktif</h2>
+          <h2 className="text-xl font-bold">{t.projects.active}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {activeProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} lang={lang} />
             ))}
           </div>
         </section>
@@ -68,10 +77,10 @@ export default async function ProjectsPage() {
       {/* Other Projects */}
       {otherProjects.length > 0 && (
         <section className="space-y-6">
-          <h2 className="text-xl font-bold">Proyek Lainnya</h2>
+          <h2 className="text-xl font-bold">{t.projects.other}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {otherProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} compact />
+              <ProjectCard key={project.id} project={project} lang={lang} compact />
             ))}
           </div>
         </section>
@@ -80,16 +89,17 @@ export default async function ProjectsPage() {
       {projects.length === 0 && (
         <div className="text-center py-24">
           <FolderKanban className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-          <p className="text-muted-foreground">Belum ada proyek yang dipublikasikan.</p>
+          <p className="text-muted-foreground">{t.projects.empty}</p>
         </div>
       )}
     </div>
   );
 }
 
-function ProjectCard({ project, compact = false }: { project: any; compact?: boolean }) {
-  const statusColor = STATUS_COLORS[project.status] || 'bg-muted text-muted-foreground';
-  const statusLabel = STATUS_LABELS[project.status] || project.status;
+function ProjectCard({ project, lang, compact = false }: { project: Project; lang: Language; compact?: boolean }) {
+  const statusColor = STATUS_COLORS[project.status ?? ''] || 'bg-muted text-muted-foreground';
+  const statusLabel = getStatusLabel(project.status ?? '', lang);
+  const t = translations[lang];
 
   return (
     <Link
@@ -98,6 +108,7 @@ function ProjectCard({ project, compact = false }: { project: any; compact?: boo
     >
       {!compact && project.cover_image ? (
         <div className="aspect-video overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={project.cover_image}
             alt={project.title}
@@ -109,7 +120,7 @@ function ProjectCard({ project, compact = false }: { project: any; compact?: boo
           <FolderKanban className="w-12 h-12 text-primary/20" />
         </div>
       )}
-      <div className={compact ? 'p-5' : 'p-5'}>
+      <div className="p-5">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="font-semibold text-base group-hover:text-primary transition-colors line-clamp-1">
             {project.title}
@@ -122,7 +133,7 @@ function ProjectCard({ project, compact = false }: { project: any; compact?: boo
           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{project.description}</p>
         )}
         <div className="flex items-center gap-1 text-xs text-primary">
-          Lihat Detail <ExternalLink className="w-3 h-3" />
+          {t.projects.detail} <ExternalLink className="w-3 h-3" />
         </div>
       </div>
     </Link>

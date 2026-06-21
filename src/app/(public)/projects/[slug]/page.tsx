@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { format, parseISO } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import {
   ArrowLeft,
   CalendarIcon,
@@ -11,14 +10,15 @@ import {
   FolderKanban,
   Globe,
 } from 'lucide-react';
+import { getStatusLabel, getDateLocale, translations } from '@/lib/i18n';
+import { getLanguageServer } from '@/lib/i18n-server';
 
-const STATUS_LABELS: Record<string, string> = {
-  planning: 'Perencanaan',
-  active: 'Aktif',
-  paused: 'Dijeda',
-  completed: 'Selesai',
-  archived: 'Diarsipkan',
-};
+interface TimelineEvent {
+  id: string;
+  title: string;
+  description?: string | null;
+  event_date?: string | null;
+}
 
 const STATUS_COLORS: Record<string, string> = {
   planning: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-200',
@@ -46,14 +46,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const project = await getPublicProjectBySlug(slug);
+  const lang = await getLanguageServer();
 
   if (!project) {
-    return { title: 'Proyek Tidak Ditemukan | Hilmi OS' };
+    return { title: lang === 'en' ? 'Project Not Found | Hilmi OS' : 'Proyek Tidak Ditemukan | Hilmi OS' };
   }
 
   return {
     title: `${project.title} | Hilmi OS`,
-    description: project.description || `Detail proyek ${project.title} oleh Muhammad Hilmi Mu'afa.`,
+    description: project.description || (lang === 'en' ? `Project details of ${project.title} by Muhammad Hilmi Mu'afa.` : `Detail proyek ${project.title} oleh Muhammad Hilmi Mu'afa.`),
     openGraph: {
       title: project.title,
       description: project.description || '',
@@ -69,16 +70,19 @@ export default async function PublicProjectDetailPage({
 }) {
   const { slug } = await params;
   const project = await getPublicProjectBySlug(slug);
+  const lang = await getLanguageServer();
+  const t = translations[lang];
+  const dateLocale = getDateLocale(lang);
 
   if (!project) {
     notFound();
   }
 
-  const statusLabel = STATUS_LABELS[project.status ?? ''] || project.status || '';
+  const statusLabel = getStatusLabel(project.status ?? '', lang);
   const statusColor = STATUS_COLORS[project.status ?? ''] || STATUS_COLORS.archived;
 
   const timeline = (project.project_timeline || []).sort(
-    (a: any, b: any) =>
+    (a: TimelineEvent, b: TimelineEvent) =>
       new Date(a.event_date ?? 0).getTime() -
       new Date(b.event_date ?? 0).getTime()
   );
@@ -91,7 +95,7 @@ export default async function PublicProjectDetailPage({
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        Kembali ke Proyek
+        {t.projects.back}
       </Link>
 
       {/* Hero cover image */}
@@ -120,7 +124,7 @@ export default async function PublicProjectDetailPage({
           </span>
           <span className="inline-flex items-center text-xs text-muted-foreground gap-1">
             <Globe className="w-3 h-3" />
-            Publik
+            {lang === 'en' ? 'Public' : 'Publik'}
           </span>
         </div>
 
@@ -133,16 +137,16 @@ export default async function PublicProjectDetailPage({
           {project.start_date && (
             <span className="flex items-center gap-1.5">
               <CalendarIcon className="w-4 h-4" />
-              {format(parseISO(project.start_date), 'MMMM yyyy', { locale: localeId })}
+              {format(parseISO(project.start_date), 'MMMM yyyy', { locale: dateLocale })}
               {project.end_date
-                ? ` → ${format(parseISO(project.end_date), 'MMMM yyyy', { locale: localeId })}`
-                : ' → Sekarang'}
+                ? ` → ${format(parseISO(project.end_date), 'MMMM yyyy', { locale: dateLocale })}`
+                : ` → ${t.common.now}`}
             </span>
           )}
           <span className="flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
-            Diperbarui{' '}
-            {format(parseISO(project.updated_at), 'dd MMM yyyy', { locale: localeId })}
+            {t.common.updated}{' '}
+            {format(parseISO(project.updated_at), 'dd MMM yyyy', { locale: dateLocale })}
           </span>
         </div>
       </div>
@@ -150,7 +154,7 @@ export default async function PublicProjectDetailPage({
       {/* Description */}
       {project.description && (
         <section className="space-y-4">
-          <h2 className="text-xl font-bold">Tentang Proyek</h2>
+          <h2 className="text-xl font-bold">{t.projects.aboutProject}</h2>
           <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-wrap">
             {project.description}
           </p>
@@ -160,12 +164,12 @@ export default async function PublicProjectDetailPage({
       {/* Project Timeline */}
       {timeline.length > 0 && (
         <section className="space-y-6">
-          <h2 className="text-xl font-bold">Linimasa</h2>
+          <h2 className="text-xl font-bold">{t.projects.timeline}</h2>
           <div className="relative">
             {/* Vertical line */}
             <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
             <div className="space-y-6 pl-12">
-              {timeline.map((event: any) => (
+              {timeline.map((event: TimelineEvent) => (
                 <div key={event.id} className="relative">
                   {/* Dot */}
                   <div className="absolute -left-12 w-8 h-8 rounded-full border-2 border-primary bg-background flex items-center justify-center">
@@ -178,7 +182,7 @@ export default async function PublicProjectDetailPage({
                         <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1 shrink-0">
                           <CalendarIcon className="w-3 h-3" />
                           {format(parseISO(event.event_date), 'MMM yyyy', {
-                            locale: localeId,
+                            locale: dateLocale,
                           })}
                         </span>
                       )}
@@ -199,13 +203,13 @@ export default async function PublicProjectDetailPage({
       {/* CTA */}
       <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-muted-foreground text-sm">
-          Tertarik berkolaborasi atau ingin tahu lebih lanjut?
+          {t.projects.ctaText}
         </p>
         <Link
-          href="/about"
+          href="/#contact"
           className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
         >
-          Hubungi Saya
+          {t.projects.ctaButton}
         </Link>
       </div>
     </div>

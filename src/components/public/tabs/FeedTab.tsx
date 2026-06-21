@@ -3,25 +3,28 @@
 import { useState } from 'react';
 import { PostCard, type Post } from '@/components/public/PostCard';
 import { cn } from '@/lib/utils';
+import { translations, type Language } from '@/lib/i18n';
 
 type FilterType = 'all' | 'text' | 'thread' | 'image' | 'video' | 'article' | 'project_update' | 'mixed';
 
-const FILTERS: { id: FilterType; label: string }[] = [
-  { id: 'all', label: 'Semua' },
-  { id: 'article', label: 'Artikel' },
-  { id: 'thread', label: 'Thread' },
-  { id: 'text', label: 'Catatan' },
-  { id: 'image', label: 'Foto' },
-  { id: 'video', label: 'Video' },
-  { id: 'project_update', label: 'Project Update' },
-];
-
 interface Props {
   posts: Post[];
+  lang: Language;
 }
 
-export function FeedTab({ posts }: Props) {
+export function FeedTab({ posts, lang }: Props) {
   const [filter, setFilter] = useState<FilterType>('all');
+  const t = translations[lang];
+
+  const FILTERS: { id: FilterType; label: string }[] = [
+    { id: 'all', label: t.explore.feed.all },
+    { id: 'article', label: t.explore.feed.article },
+    { id: 'thread', label: t.explore.feed.thread },
+    { id: 'text', label: t.explore.feed.text },
+    { id: 'image', label: t.explore.feed.image },
+    { id: 'video', label: t.explore.feed.video },
+    { id: 'project_update', label: t.explore.feed.projectUpdate },
+  ];
 
   const filtered = filter === 'all' ? posts : posts.filter((p) => p.post_type === filter);
 
@@ -49,12 +52,12 @@ export function FeedTab({ posts }: Props) {
       {/* Feed */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground text-sm">
-          Belum ada konten di kategori ini.
+          {t.explore.feed.empty}
         </div>
       ) : (
         <div className="max-w-[680px] mx-auto space-y-4">
           {filtered.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard key={post.id} post={post} lang={lang} />
           ))}
         </div>
       )}

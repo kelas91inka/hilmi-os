@@ -1,8 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { GlobalSearch } from '@/components/shared/global-search';
+import { Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { PortalSidebar } from '@/components/shared/portal-sidebar';
 
 const pageTitles: Record<string, string> = {
   '/portal/dashboard': 'Dashboard',
@@ -50,14 +55,33 @@ export function PortalHeader() {
   const pathname = usePathname();
   const pageTitle = getPageTitle(pathname);
   const pageIcon = getPageIcon(pathname);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <header
       className="sticky top-0 z-30 flex h-[60px] items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-4 md:px-6 shrink-0"
       aria-label="Header portal"
     >
-      {/* Left: Page title */}
-      <div className="flex items-center gap-3 min-w-0">
+      {/* Left: Hamburger + Page title */}
+      <div className="flex items-center gap-2 md:gap-3 min-w-0">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-9 w-9 text-muted-foreground hover:text-foreground"
+                aria-label="Buka menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            }
+          />
+          <SheetContent side="left" className="p-0 w-[240px] border-r-0" showCloseButton={false}>
+            <PortalSidebar isMobile onClose={() => setIsOpen(false)} />
+          </SheetContent>
+        </Sheet>
+
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-lg leading-none" aria-hidden="true">{pageIcon}</span>
           <h1 className="font-display text-[17px] font-bold tracking-tight text-foreground truncate">

@@ -6,17 +6,23 @@ import { useState, useEffect } from 'react';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { translations, type Language } from '@/lib/i18n';
 
-const NAV_LINKS = [
-  { href: '/', label: 'Home', exact: true },
-  { href: '/explore', label: 'Explore', exact: false },
-  { href: '/projects', label: 'Projects', exact: false },
-];
-
-export function PublicNavbar() {
+export function PublicNavbar({ lang }: { lang: Language }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const t = translations[lang];
+
+  const NAV_LINKS = [
+    { href: '/', label: t.navbar.home, exact: true },
+    { href: '/explore', label: t.navbar.explore, exact: false },
+    { href: '/projects', label: t.navbar.projects, exact: false },
+  ];
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 8);
@@ -27,6 +33,13 @@ export function PublicNavbar() {
   const isActive = (href: string, exact: boolean) => {
     if (exact) return pathname === href;
     return pathname.startsWith(href);
+  };
+
+  const handleLanguageToggle = () => {
+    const nextLang = lang === 'id' ? 'en' : 'id';
+    document.cookie = `lang=${nextLang}; path=/; max-age=31536000`; // 1 year
+    localStorage.setItem('lang', nextLang);
+    router.refresh();
   };
 
   return (
@@ -66,12 +79,22 @@ export function PublicNavbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLanguageToggle}
+            title={lang === 'id' ? 'Switch to English' : 'Ubah ke Bahasa Indonesia'}
+            className="h-9 w-9 text-muted-foreground hover:text-foreground text-xs font-semibold"
+          >
+            {lang === 'id' ? 'EN' : 'ID'}
+          </Button>
+
           <ThemeSwitcher />
 
           {/* Mobile menu toggle */}
           <button
-            className="md:hidden p-1.5 rounded-md hover:bg-muted transition-colors"
+            className="md:hidden p-1.5 rounded-md hover:bg-muted transition-colors ml-1"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
             id="mobile-menu-toggle"

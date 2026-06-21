@@ -18,18 +18,23 @@ import {
 const Github = Link2;
 const Linkedin = Link2;
 import { format, parseISO } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
+import { getDateLocale, getStatusLabel, translations } from '@/lib/i18n';
+import { getLanguageServer } from '@/lib/i18n-server';
 
-export const metadata: Metadata = {
-  title: 'Muhlim — Muhammad Hilmi Mu\'afa',
-  description:
-    'Personal platform Muhammad Hilmi Mu\'afa — Student, Builder, System Administrator. Proyek, tulisan, dan perjalanan belajar teknologi.',
-  openGraph: {
-    title: 'Muhlim — Muhammad Hilmi Mu\'afa',
-    description: 'Building systems that solve real problems.',
-    url: 'https://muhlim.my.id',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLanguageServer();
+  return {
+    title: `Muhlim — Muhammad Hilmi Mu'afa`,
+    description: lang === 'en' 
+      ? "Personal platform of Muhammad Hilmi Mu'afa — Student, Builder, System Administrator. Technology projects, writing, and learning journey."
+      : "Platform personal Muhammad Hilmi Mu'afa — Student, Builder, System Administrator. Proyek, tulisan, dan perjalanan belajar teknologi.",
+    openGraph: {
+      title: `Muhlim — Muhammad Hilmi Mu'afa`,
+      description: lang === 'en' ? 'Building systems that solve real problems.' : 'Membangun sistem yang memecahkan masalah nyata.',
+      url: 'https://muhlim.my.id',
+    },
+  };
+}
 
 async function getHomeData() {
   const supabase = await createClient();
@@ -76,13 +81,6 @@ const STATUS_COLORS: Record<string, string> = {
   completed: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
   archived: 'bg-muted text-muted-foreground',
 };
-const STATUS_LABELS: Record<string, string> = {
-  planning: 'Perencanaan',
-  active: 'Aktif',
-  paused: 'Dijeda',
-  completed: 'Selesai',
-  archived: 'Diarsipkan',
-};
 
 const SKILL_CATEGORIES = [
   {
@@ -104,6 +102,9 @@ const SKILL_CATEGORIES = [
 
 export default async function HomePage() {
   const { featuredProjects, recentPosts, profile } = await getHomeData();
+  const lang = await getLanguageServer();
+  const t = translations[lang];
+  const dateLocale = getDateLocale(lang);
 
   const featuredPost = recentPosts.find((p) => p.featured);
   const latestPosts = recentPosts.filter((p) => !p.featured).slice(0, 3);
@@ -116,6 +117,13 @@ export default async function HomePage() {
   if (profile.whatsapp) {
     contactLinks.push({ href: `https://wa.me/${profile.whatsapp.replace(/[^0-9]/g, '')}`, icon: MessageCircle, label: 'WhatsApp', value: profile.whatsapp });
   }
+
+  const statItems = [
+    { value: '2+', label: t.stats.years },
+    { value: '10+', label: t.stats.projects },
+    { value: '5+', label: t.stats.competitions },
+    { value: '∞', label: t.stats.passion },
+  ];
 
   return (
     <div className="flex flex-col">
@@ -131,7 +139,7 @@ export default async function HomePage() {
           {/* Status badge */}
           <div className="inline-flex items-center gap-2 text-xs border border-border/60 rounded-full px-4 py-1.5 text-muted-foreground bg-background/80 backdrop-blur-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Tersedia untuk kolaborasi
+            {t.hero.collaboration}
           </div>
 
           {/* Name */}
@@ -142,13 +150,13 @@ export default async function HomePage() {
               Mu&apos;afa
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground font-medium tracking-wide">
-              {profile.tagline || 'Student · Builder · System Administrator'}
+              {profile.tagline || t.hero.tagline}
             </p>
           </div>
 
           {/* Personal statement */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {profile.personal_statement || 'Building systems that solve real problems. Exploring technology, education, and innovation.'}
+            {profile.personal_statement || t.hero.statement}
           </p>
 
           {/* CTAs */}
@@ -157,14 +165,14 @@ export default async function HomePage() {
               href="/explore"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-semibold hover:opacity-85 transition-opacity"
             >
-              Explore My Journey
+              {t.hero.ctaExplore}
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
               href="#contact"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-2.5 text-sm font-semibold hover:bg-muted transition-colors"
             >
-              Get in Touch
+              {t.hero.ctaContact}
             </a>
           </div>
         </div>
@@ -174,15 +182,15 @@ export default async function HomePage() {
       <section className="py-20 px-4 border-t border-border/40">
         <div className="container max-w-4xl mx-auto space-y-12">
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-primary uppercase tracking-widest">Tentang Saya</p>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">About Muhlim</h2>
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest">{t.about.title}</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">{t.about.subtitle}</h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-10 items-start">
             {/* Bio + Education */}
             <div className="space-y-6">
               <p className="text-muted-foreground leading-relaxed text-base">
-                {profile.bio || 'Network engineer dan web developer yang percaya bahwa teknologi harus membuat hidup lebih mudah. Membangun sistem yang elegan, cepat, dan bermakna.'}
+                {profile.bio || (lang === 'en' ? 'Network engineer and web developer who believes technology should make life easier. Building elegant, fast, and meaningful systems.' : 'Network engineer dan web developer yang percaya bahwa teknologi harus membuat hidup lebih mudah. Membangun sistem yang elegan, cepat, dan bermakna.')}
               </p>
               {profile.current_focus && (
                 <p className="text-muted-foreground leading-relaxed text-base">
@@ -192,7 +200,7 @@ export default async function HomePage() {
               {/* Education */}
               {profile.education && (
                 <div className="pt-2 border-t border-border/40">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2 font-medium">Pendidikan</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2 font-medium">{t.about.education}</p>
                   <p className="text-sm font-medium">{profile.education}</p>
                 </div>
               )}
@@ -225,7 +233,7 @@ export default async function HomePage() {
           {profile.tech_stack && (
             <div className="pt-6 border-t border-border/40">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 font-medium flex items-center gap-1.5">
-                <Zap className="w-3 h-3" /> Tech Stack
+                <Zap className="w-3 h-3" /> {t.about.techStack}
               </p>
               <div className="flex flex-wrap gap-2">
                 {profile.tech_stack.split(',').map((tech) => (
@@ -248,11 +256,11 @@ export default async function HomePage() {
           <div className="container max-w-4xl mx-auto space-y-10">
             <div className="flex items-end justify-between">
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-primary uppercase tracking-widest">Proyek</p>
-                <h2 className="text-3xl font-bold tracking-tight">Featured Projects</h2>
+                <p className="text-xs font-semibold text-primary uppercase tracking-widest">{t.projects.title}</p>
+                <h2 className="text-3xl font-bold tracking-tight">{t.projects.featured}</h2>
               </div>
               <Link href="/projects" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-                Semua <ArrowRight className="w-3.5 h-3.5" />
+                {t.common.all} <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -280,7 +288,7 @@ export default async function HomePage() {
                   <div className="p-4 space-y-2">
                     <div className="flex items-center gap-2">
                       <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[project.status || 'planning'] || 'bg-muted text-muted-foreground'}`}>
-                        {STATUS_LABELS[project.status || 'planning'] || project.status}
+                        {getStatusLabel(project.status || 'planning', lang)}
                       </span>
                     </div>
                     <h3 className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-1">
@@ -290,7 +298,7 @@ export default async function HomePage() {
                       <p className="text-xs text-muted-foreground line-clamp-2">{project.description}</p>
                     )}
                     <div className="flex items-center gap-1 text-xs text-primary pt-1">
-                      Lihat Detail <ExternalLink className="w-3 h-3" />
+                      {t.projects.detail} <ExternalLink className="w-3 h-3" />
                     </div>
                   </div>
                 </Link>
@@ -306,8 +314,8 @@ export default async function HomePage() {
           <div className="container max-w-4xl mx-auto space-y-10">
             <div className="flex items-end justify-between">
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-primary uppercase tracking-widest">Konten</p>
-                <h2 className="text-3xl font-bold tracking-tight">Latest Posts</h2>
+                <p className="text-xs font-semibold text-primary uppercase tracking-widest">{t.explore.title}</p>
+                <h2 className="text-3xl font-bold tracking-tight">{t.comments.latestPosts}</h2>
               </div>
               <Link href="/explore" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                 Explore <ArrowRight className="w-3.5 h-3.5" />
@@ -334,11 +342,11 @@ export default async function HomePage() {
                   <div className="p-5 space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                        Featured Story
+                        {t.comments.featuredStory}
                       </span>
                       {featuredPost.reading_time && (
                         <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                          <BookOpen className="w-3 h-3" /> {featuredPost.reading_time} min baca
+                          <BookOpen className="w-3 h-3" /> {featuredPost.reading_time} {t.comments.readTime}
                         </span>
                       )}
                     </div>
@@ -366,7 +374,7 @@ export default async function HomePage() {
                           {post.post_type}
                         </span>
                         {post.published_at && (
-                          <span>{format(parseISO(post.published_at), 'd MMM yyyy', { locale: localeId })}</span>
+                          <span>{format(parseISO(post.published_at), 'd MMM yyyy', { locale: dateLocale })}</span>
                         )}
                       </div>
                       <h3 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-2">
@@ -388,12 +396,7 @@ export default async function HomePage() {
       <section className="py-16 px-4 bg-muted/20 border-y border-border/40">
         <div className="container max-w-4xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-            {[
-              { value: '2+', label: 'Tahun Belajar Tech' },
-              { value: '10+', label: 'Proyek Dibangun' },
-              { value: '5+', label: 'Kompetisi Diikuti' },
-              { value: '∞', label: 'Semangat Belajar' },
-            ].map(({ value, label }) => (
+            {statItems.map(({ value, label }) => (
               <div key={label} className="space-y-1">
                 <div className="text-3xl font-bold tracking-tight">{value}</div>
                 <div className="text-xs text-muted-foreground">{label}</div>
@@ -407,15 +410,15 @@ export default async function HomePage() {
       <section id="contact" className="py-24 px-4">
         <div className="container max-w-3xl mx-auto text-center space-y-8">
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-primary uppercase tracking-widest">Kontak</p>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Mari Berkolaborasi</h2>
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest">{t.contact.title}</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">{t.contact.subtitle}</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Saya terbuka untuk proyek, diskusi, atau sekadar berbagi ilmu. Jangan ragu untuk menghubungi.
+              {t.contact.description}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            {contactLinks.map(({ href, icon: Icon, label, value }) => (
+            {contactLinks.map(({ href, icon: Icon, label }) => (
               <a
                 key={label}
                 href={href}

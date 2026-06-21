@@ -1,11 +1,17 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { ExploreClient } from '@/components/public/ExploreClient';
+import { getLanguageServer } from '@/lib/i18n-server';
 
-export const metadata: Metadata = {
-  title: 'Explore — Muhlim',
-  description: 'Jelajahi konten, perjalanan, dan pencapaian Muhammad Hilmi Mu\'afa.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLanguageServer();
+  return {
+    title: lang === 'en' ? 'Explore — Muhlim' : 'Jelajahi — Muhlim',
+    description: lang === 'en' 
+      ? 'Explore content, journey, and achievements of Muhammad Hilmi Mu\'afa.'
+      : 'Jelajahi konten, perjalanan, dan pencapaian Muhammad Hilmi Mu\'afa.',
+  };
+}
 
 async function getExploreData() {
   const supabase = await createClient();
@@ -38,10 +44,16 @@ async function getExploreData() {
 
 export default async function ExplorePage() {
   const { posts, timeline, achievements } = await getExploreData();
+  const lang = await getLanguageServer();
 
   return (
     <div className="min-h-screen">
-      <ExploreClient posts={posts} timeline={timeline} achievements={achievements} />
+      <ExploreClient 
+        posts={posts} 
+        timeline={timeline} 
+        achievements={achievements} 
+        lang={lang}
+      />
     </div>
   );
 }

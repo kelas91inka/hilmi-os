@@ -1,23 +1,64 @@
 'use client';
 
 import * as React from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Laptop } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { getLanguageClient } from '@/lib/i18n';
 
 export function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
+  const [lang, setLang] = React.useState<'id' | 'en'>('id');
+
+  React.useEffect(() => {
+    // Read active language cookie on mount
+    const timer = setTimeout(() => {
+      setLang(getLanguageClient());
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const labels = {
+    id: { light: 'Terang', dark: 'Gelap', system: 'Sistem', title: 'Ubah tema' },
+    en: { light: 'Light', dark: 'Dark', system: 'System', title: 'Change theme' }
+  }[lang];
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-      title="Toggle theme"
-    >
-      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            title={labels.title}
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+          >
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">{labels.title}</span>
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme('light')}>
+          <Sun className="mr-2 h-4 w-4" />
+          <span>{labels.light}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>
+          <Moon className="mr-2 h-4 w-4" />
+          <span>{labels.dark}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}>
+          <Laptop className="mr-2 h-4 w-4" />
+          <span>{labels.system}</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

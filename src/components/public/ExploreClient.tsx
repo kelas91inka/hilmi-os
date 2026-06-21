@@ -1,20 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, ElementType } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { FeedTab } from '@/components/public/tabs/FeedTab';
 import { JourneyTab } from '@/components/public/tabs/JourneyTab';
 import { AchievementsTab } from '@/components/public/tabs/AchievementsTab';
 import { cn } from '@/lib/utils';
 import { Rss, MapPin, Trophy } from 'lucide-react';
+import { translations, type Language } from '@/lib/i18n';
 
 type Tab = 'feed' | 'journey' | 'achievements';
-
-const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: 'feed', label: 'Feed', icon: Rss },
-  { id: 'journey', label: 'Journey', icon: MapPin },
-  { id: 'achievements', label: 'Achievements', icon: Trophy },
-];
 
 interface Post {
   id: string;
@@ -52,12 +47,21 @@ interface Props {
   posts: Post[];
   timeline: TimelineEvent[];
   achievements: Achievement[];
+  lang: Language;
 }
 
-export function ExploreClient({ posts, timeline, achievements }: Props) {
+export function ExploreClient({ posts, timeline, achievements, lang }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+
+  const t = translations[lang];
+
+  const TABS: { id: Tab; label: string; icon: ElementType }[] = [
+    { id: 'feed', label: t.explore.tabs.feed, icon: Rss },
+    { id: 'journey', label: t.explore.tabs.journey, icon: MapPin },
+    { id: 'achievements', label: t.explore.tabs.achievements, icon: Trophy },
+  ];
 
   const rawTab = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTab] = useState<Tab>(
@@ -86,9 +90,9 @@ export function ExploreClient({ posts, timeline, achievements }: Props) {
     <div className="container max-w-4xl mx-auto px-4 py-10">
       {/* Header */}
       <div className="mb-8 space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Explore</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t.explore.title}</h1>
         <p className="text-muted-foreground text-sm">
-          Konten, perjalanan, dan pencapaian yang membentuk saya.
+          {t.explore.subtitle}
         </p>
       </div>
 
@@ -117,9 +121,9 @@ export function ExploreClient({ posts, timeline, achievements }: Props) {
 
       {/* Tab content */}
       <div>
-        {activeTab === 'feed' && <FeedTab posts={posts} />}
-        {activeTab === 'journey' && <JourneyTab events={timeline} />}
-        {activeTab === 'achievements' && <AchievementsTab achievements={achievements} />}
+        {activeTab === 'feed' && <FeedTab posts={posts} lang={lang} />}
+        {activeTab === 'journey' && <JourneyTab events={timeline} lang={lang} />}
+        {activeTab === 'achievements' && <AchievementsTab achievements={achievements} lang={lang} />}
       </div>
     </div>
   );

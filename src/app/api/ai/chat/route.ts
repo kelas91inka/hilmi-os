@@ -10,6 +10,19 @@ const provider = createOpenAI({
   baseURL: 'https://api.groq.com/openai/v1'
 });
 
+function getMessageText(message: any): string {
+  if (message.content && message.content.trim() !== '') {
+    return message.content;
+  }
+  if (Array.isArray(message.parts)) {
+    return message.parts
+      .filter((part: any) => part.type === 'text')
+      .map((part: any) => part.text)
+      .join('');
+  }
+  return '';
+}
+
 export async function POST(req: Request) {
   try {
     if (!process.env.AI_API_KEY) {
@@ -17,58 +30,60 @@ export async function POST(req: Request) {
     }
     const { messages, conversationId, systemContext } = await req.json();
 
-  if (!conversationId) {
-    return new Response('Conversation ID is required', { status: 400 });
-  }
-
-  const lastMessage = messages[messages.length - 1];
-  
-  if (lastMessage && lastMessage.role === 'user') {
-    try {
-      await aiRepository.saveMessage(conversationId, 'user', lastMessage.content || '');
-    } catch (e) {
-      console.error('Failed to save user message:', e);
+    if (!conversationId) {
+      return new Response('Conversation ID is required', { status: 400 });
     }
-  }
 
-  function mapUIMessagesToCore(msgs: any[]): CoreMessage[] {
-    const core: CoreMessage[] = [];
-    for (const m of msgs) {
-      if (m.role === 'user') {
-        core.push({ role: 'user', content: m.content || '' });
-      } else if (m.role === 'assistant') {
-        if (!m.toolInvocations || m.toolInvocations.length === 0) {
-          core.push({ role: 'assistant', content: m.content || '' });
-          continue;
-        }
-
-        const toolCalls = m.toolInvocations.map((t: any) => ({
-          type: 'tool-call' as const,
-          toolCallId: t.toolCallId,
-          toolName: t.toolName,
-          args: t.args || {}
-        }));
-        core.push({
-          role: 'assistant',
-          content: m.content ? [{ type: 'text' as const, text: m.content }, ...toolCalls] : toolCalls
-        });
-
-        const toolResults = m.toolInvocations.filter((t: any) => t.state === 'result');
-        if (toolResults.length > 0) {
-          core.push({
-            role: 'tool',
-            content: toolResults.map((t: any) => ({
-              type: 'tool-result' as const,
-              toolCallId: t.toolCallId,
-              toolName: t.toolName,
-              result: t.result
-            }))
-          });
-        }
+    const lastMessage = messages[messages.length - 1];
+    
+    if (lastMessage && lastMessage.role === 'user') {
+      try {
+        const userText = getMessageText(lastMessage);
+        await aiRepository.saveMessage(conversationId, 'user', userText);
+      } catch (e) {
+        console.error('Failed to save user message:', e);
       }
     }
-    return core;
-  }
+
+    function mapUIMessagesToCore(msgs: any[]): CoreMessage[] {
+      const core: CoreMessage[] = [];
+      for (const m of msgs) {
+        const textContent = getMessageText(m);
+        if (m.role === 'user') {
+          core.push({ role: 'user', content: textContent });
+        } else if (m.role === 'assistant') {
+          if (!m.toolInvocations || m.toolInvocations.length === 0) {
+            core.push({ role: 'assistant', content: textContent });
+            continue;
+          }
+
+          const toolCalls = m.toolInvocations.map((t: any) => ({
+            type: 'tool-call' as const,
+            toolCallId: t.toolCallId,
+            toolName: t.toolName,
+            args: t.args || {}
+          }));
+          core.push({
+            role: 'assistant',
+            content: textContent ? [{ type: 'text' as const, text: textContent }, ...toolCalls] : toolCalls
+          });
+
+          const toolResults = m.toolInvocations.filter((t: any) => t.state === 'result');
+          if (toolResults.length > 0) {
+            core.push({
+              role: 'tool',
+              content: toolResults.map((t: any) => ({
+                type: 'tool-result' as const,
+                toolCallId: t.toolCallId,
+                toolName: t.toolName,
+                result: t.result
+              }))
+            });
+          }
+        }
+      }
+      return core;
+    }
 
   const coreMessages = mapUIMessagesToCore(messages);
 

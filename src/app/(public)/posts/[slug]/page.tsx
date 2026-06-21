@@ -3,23 +3,14 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { format, parseISO } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { ArrowLeft, BookOpen, Calendar } from 'lucide-react';
 import { LikeButton } from '@/components/public/LikeButton';
 import { ShareButton } from '@/components/public/ShareButton';
 import { BookmarkButton } from '@/components/public/BookmarkButton';
 import { CommentSection } from '@/components/public/CommentSection';
 import { getApprovedComments } from '@/features/feed/actions/comment.action';
-
-const POST_TYPE_LABELS: Record<string, string> = {
-  text: 'Catatan',
-  thread: 'Thread',
-  image: 'Foto',
-  video: 'Video',
-  article: 'Artikel',
-  project_update: 'Project Update',
-  mixed: 'Post',
-};
+import { getPostTypeLabel, getDateLocale, translations } from '@/lib/i18n';
+import { getLanguageServer } from '@/lib/i18n-server';
 
 async function getPostBySlug(slug: string) {
   const supabase = await createClient();
@@ -39,7 +30,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  if (!post) return { title: 'Post Tidak Ditemukan | Muhlim' };
+  const lang = await getLanguageServer();
+  if (!post) return { title: lang === 'en' ? 'Post Not Found | Muhlim' : 'Post Tidak Ditemukan | Muhlim' };
 
   const title = post.title ?? 'Post dari Muhlim';
   const description = post.excerpt ?? post.body?.slice(0, 160) ?? '';
@@ -63,10 +55,13 @@ export default async function PostDetailPage({
 }) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
+  const lang = await getLanguageServer();
+  const dateLocale = getDateLocale(lang);
+
   if (!post) notFound();
 
   const comments = await getApprovedComments(post.id);
-  const typeLabel = POST_TYPE_LABELS[post.post_type] ?? post.post_type;
+  const typeLabel = getPostTypeLabel(post.post_type, lang);
   const shareUrl = `https://muhlim.my.id/posts/${slug}`;
 
   return (
@@ -77,7 +72,7 @@ export default async function PostDetailPage({
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group mb-8"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        Kembali ke Explore
+        {lang === 'en' ? 'Back to Explore' : 'Kembali ke Explore'}
       </Link>
 
       {/* Post header */}
@@ -90,13 +85,13 @@ export default async function PostDetailPage({
           {post.published_at && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              {format(parseISO(post.published_at), 'd MMMM yyyy', { locale: localeId })}
+              {format(parseISO(post.published_at), 'd MMMM yyyy', { locale: dateLocale })}
             </span>
           )}
           {post.reading_time && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <BookOpen className="w-3 h-3" />
-              {post.reading_time} min baca
+              {post.reading_time} {lang === 'en' ? 'min read' : 'min baca'}
             </span>
           )}
         </div>
@@ -183,7 +178,7 @@ export default async function PostDetailPage({
 
       {/* Comments */}
       <section id="comments">
-        <CommentSection postId={post.id} initialComments={comments} />
+        <CommentSection postId={post.id} initialComments={comments} lang={lang} />
       </section>
     </div>
   );

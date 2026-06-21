@@ -1,6 +1,15 @@
+'use client';
+
+import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
-import { MapPin } from 'lucide-react';
+import { MapPin, CalendarIcon } from 'lucide-react';
+import { getDateLocale, translations, type Language } from '@/lib/i18n';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface TimelineEvent {
   id: string;
@@ -11,6 +20,7 @@ interface TimelineEvent {
 
 interface Props {
   events: TimelineEvent[];
+  lang?: Language;
 }
 
 // Group events by year
@@ -24,12 +34,16 @@ function groupByYear(events: TimelineEvent[]) {
   return Object.entries(grouped).sort(([a], [b]) => Number(b) - Number(a));
 }
 
-export function JourneyTab({ events }: Props) {
+export function JourneyTab({ events, lang = 'id' }: Props) {
+  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  const t = translations[lang];
+  const dateLocale = getDateLocale(lang);
+
   if (events.length === 0) {
     return (
       <div className="text-center py-20 text-muted-foreground">
         <MapPin className="w-10 h-10 mx-auto mb-3 opacity-20" />
-        <p className="text-sm">Belum ada timeline yang dipublikasikan.</p>
+        <p className="text-sm">{t.explore.journey.empty}</p>
       </div>
     );
   }
@@ -57,15 +71,22 @@ export function JourneyTab({ events }: Props) {
                   {/* Dot */}
                   <div className="absolute -left-[1.125rem] top-3.5 w-2.5 h-2.5 rounded-full border-2 border-primary bg-background" />
 
-                  <div className="p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-sm transition-all ml-2">
+                  <div
+                    onClick={() => setSelectedEvent(ev)}
+                    className="p-4 rounded-xl border border-border/60 bg-card hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-300 ml-2 group"
+                  >
                     <div className="flex items-start justify-between gap-3 mb-1">
-                      <h3 className="font-semibold text-sm leading-snug">{ev.title}</h3>
-                      <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
-                        {format(parseISO(ev.event_date), 'MMM yyyy', { locale: localeId })}
+                      <h3 className="font-semibold text-sm leading-snug group-hover:text-primary transition-colors">
+                        {ev.title}
+                      </h3>
+                      <span className="text-xs text-muted-foreground shrink-0 mt-0.5 whitespace-nowrap">
+                        {format(parseISO(ev.event_date), 'MMM yyyy', { locale: dateLocale })}
                       </span>
                     </div>
                     {ev.description && (
-                      <p className="text-sm text-muted-foreground leading-relaxed">{ev.description}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                        {ev.description}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -74,6 +95,24 @@ export function JourneyTab({ events }: Props) {
           </div>
         </div>
       ))}
+
+      {/* Detail Dialog Popup */}
+      <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+              <CalendarIcon className="w-3.5 h-3.5" />
+              {selectedEvent && format(parseISO(selectedEvent.event_date), 'd MMMM yyyy', { locale: dateLocale })}
+            </div>
+            <DialogTitle className="text-xl font-bold leading-snug text-foreground">
+              {selectedEvent?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto pr-1">
+            {selectedEvent?.description}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

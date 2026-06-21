@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { BookOpen, Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
 import { LikeButton } from '@/components/public/LikeButton';
 import { BookmarkButton } from '@/components/public/BookmarkButton';
 import { ShareButton } from '@/components/public/ShareButton';
 import { cn } from '@/lib/utils';
+import { getPostTypeLabel, getDateLocale, translations, type Language } from '@/lib/i18n';
 
 export interface Post {
   id: string;
@@ -25,16 +25,6 @@ export interface Post {
   project_id?: string | null;
 }
 
-const POST_TYPE_LABELS: Record<string, string> = {
-  text: 'Catatan',
-  thread: 'Thread',
-  image: 'Foto',
-  video: 'Video',
-  article: 'Artikel',
-  project_update: 'Project Update',
-  mixed: 'Post',
-};
-
 const POST_TYPE_COLORS: Record<string, string> = {
   text: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
   thread: 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400',
@@ -47,20 +37,24 @@ const POST_TYPE_COLORS: Record<string, string> = {
 
 interface Props {
   post: Post;
+  lang?: Language;
 }
 
-export function PostCard({ post }: Props) {
+export function PostCard({ post, lang = 'id' }: Props) {
   const href = post.slug ? `/posts/${post.slug}` : null;
-  const typeLabel = POST_TYPE_LABELS[post.post_type] ?? post.post_type;
+  const typeLabel = getPostTypeLabel(post.post_type, lang);
   const typeColor = POST_TYPE_COLORS[post.post_type] ?? POST_TYPE_COLORS.mixed;
   const title = post.title ?? null;
   const preview = post.excerpt ?? (post.body ? post.body.slice(0, 200) : null);
 
+  const dateLocale = getDateLocale(lang);
+  const t = translations[lang];
+
   const timeAgo = post.published_at
-    ? formatDistanceToNow(parseISO(post.published_at), { addSuffix: true, locale: localeId })
+    ? formatDistanceToNow(parseISO(post.published_at), { addSuffix: true, locale: dateLocale })
     : null;
   const fullDate = post.published_at
-    ? format(parseISO(post.published_at), 'd MMMM yyyy', { locale: localeId })
+    ? format(parseISO(post.published_at), 'd MMMM yyyy', { locale: dateLocale })
     : null;
 
   return (
@@ -85,7 +79,7 @@ export function PostCard({ post }: Props) {
           </span>
           {post.featured && (
             <span className="text-[11px] font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-              Featured
+              {t.comments.featuredStory}
             </span>
           )}
           {timeAgo && (
@@ -96,7 +90,7 @@ export function PostCard({ post }: Props) {
           {post.reading_time && (
             <span className="text-xs text-muted-foreground flex items-center gap-1 ml-auto">
               <BookOpen className="w-3 h-3" />
-              {post.reading_time} min
+              {post.reading_time} {lang === 'en' ? 'min read' : 'min baca'}
             </span>
           )}
         </div>
@@ -151,7 +145,7 @@ export function PostCard({ post }: Props) {
                 href={href}
                 className="text-xs text-primary font-medium hover:underline px-2 py-1.5 ml-1"
               >
-                Baca →
+                {lang === 'en' ? 'Read' : 'Baca'} →
               </Link>
             )}
           </div>

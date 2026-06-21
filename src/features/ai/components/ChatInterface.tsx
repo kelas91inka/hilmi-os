@@ -11,6 +11,19 @@ import { Send, Bot, User, Sparkles, Zap, Loader2, Mic } from 'lucide-react';
 import { saveMessageAction } from '../actions/ai.actions';
 import { AIConversation } from '../types/ai.types';
 
+function getMessageText(message: any): string {
+  if (message.content && message.content.trim() !== '') {
+    return message.content;
+  }
+  if (Array.isArray(message.parts)) {
+    return message.parts
+      .filter((part: any) => part.type === 'text')
+      .map((part: any) => part.text)
+      .join('');
+  }
+  return '';
+}
+
 export function ChatInterface({ 
   initialConversation,
   initialMessages = [],
@@ -78,12 +91,7 @@ export function ChatInterface({
     initialMessages,
     maxSteps: 5,
     onFinish: async ({ message }) => {
-      const text = message.parts
-        ? message.parts
-            .filter((part: any) => part.type === 'text')
-            .map((part: any) => part.text)
-            .join('')
-        : message.content || '';
+      const text = getMessageText(message);
       await saveMessageAction(initialConversation.id, message.role, text);
     }
   });
@@ -181,12 +189,7 @@ export function ChatInterface({
               )}
               
               <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
-                {m.content || 
-                  m.parts
-                    ?.filter((part: any) => part.type === 'text')
-                    .map((part: any) => part.text)
-                    .join('') || 
-                  ''}
+                {getMessageText(m)}
               </div>
               
               {/* Render Tool Invocations */}

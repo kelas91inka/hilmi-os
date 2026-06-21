@@ -118,34 +118,34 @@ export function NotesClient({ initialNotes }: NotesClientProps) {
       </div>
 
       {/* Stats Cards (Visual Summary) */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-primary">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-primary shrink-0">
             <BookOpen className="w-4 h-4" />
           </div>
-          <div>
-            <div className="text-xl font-bold leading-none text-primary">{allCount}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">Total Catatan</div>
+          <div className="min-w-0">
+            <div className="text-base sm:text-xl font-bold leading-none text-primary">{allCount}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">Total Catatan</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-yellow-500">
+        <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-yellow-500 shrink-0">
             <Star className="w-4 h-4" />
           </div>
-          <div>
-            <div className="text-xl font-bold leading-none text-yellow-500">{favoriteCount}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">Favorit</div>
+          <div className="min-w-0">
+            <div className="text-base sm:text-xl font-bold leading-none text-yellow-500">{favoriteCount}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">Favorit</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-blue-500">
+        <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl border bg-card/50 glow-card hover-border-primary transition-all">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-background text-blue-500 shrink-0">
             <LinkIcon className="w-4 h-4" />
           </div>
-          <div>
-            <div className="text-xl font-bold leading-none text-blue-500">{linkedCount}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">Terkait Entitas</div>
+          <div className="min-w-0">
+            <div className="text-base sm:text-xl font-bold leading-none text-blue-500">{linkedCount}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">Terkait Entitas</div>
           </div>
         </div>
       </div>
