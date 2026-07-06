@@ -12,4 +12,5 @@ export interface AIMessage {
   role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
   created_at: string;
+  message_data?: string | null;
 }

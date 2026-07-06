@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LogoutButton } from '@/features/auth/components/logout-button';
@@ -37,8 +38,10 @@ const navSections: NavSection[] = [
     label: 'Utama',
     items: [
       { name: 'Dashboard', href: '/portal/dashboard', icon: LayoutDashboard },
+      { name: 'AI Copilot', href: '/portal/ai', icon: Sparkles },
     ],
   },
+
   {
     label: 'Produktivitas',
     items: [

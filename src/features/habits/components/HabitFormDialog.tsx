@@ -14,6 +14,7 @@ import { Plus } from 'lucide-react';
 
 interface HabitFormDialogProps {
   initialData?: Habit;
+  draftData?: { title?: string; description?: string; target_frequency?: string };
   trigger?: ReactElement;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -21,6 +22,7 @@ interface HabitFormDialogProps {
 
 export function HabitFormDialog({
   initialData,
+  draftData,
   trigger,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
@@ -40,11 +42,23 @@ export function HabitFormDialog({
   };
 
   const [formData, setFormData] = useState<HabitFormData>({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    target_frequency: initialData?.target_frequency || 'daily',
+    title: draftData?.title || initialData?.title || '',
+    description: draftData?.description || initialData?.description || '',
+    target_frequency: (draftData?.target_frequency || initialData?.target_frequency || 'daily') as any,
     active: initialData ? initialData.active : true,
   });
+
+  // Sync when draftData changes (AI pre-fill)
+  React.useEffect(() => {
+    if (draftData) {
+      setFormData(prev => ({
+        ...prev,
+        title: draftData.title || prev.title,
+        description: draftData.description || prev.description,
+        target_frequency: (draftData.target_frequency || prev.target_frequency) as any,
+      }));
+    }
+  }, [draftData?.title, draftData?.description, draftData?.target_frequency]);
 
   // Keep form sync when initialData/open changes (pre-filling form)
   React.useEffect(() => {
@@ -100,7 +114,6 @@ export function HabitFormDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       {!isControlled && (
         <DialogTrigger
-          nativeButton={trigger ? (trigger.type === 'button' || trigger.type === Button) : true}
           render={
             trigger || (
               <Button>

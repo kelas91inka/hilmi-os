@@ -94,8 +94,18 @@ export function TaskForm({
 
   useEffect(() => {
     if (open) {
-      const resetTags = initialData?.tags || [];
-      reset({ ...defaultValues, tags: resetTags });
+      const freshData = initialData || {
+        title: "",
+        description: "",
+        status: TASK_STATUS.BELUM_DIMULAI,
+        priority: TASK_PRIORITY.NORMAL,
+        due_date: "",
+        project_id: "",
+        goal_id: "",
+        tags: [],
+      };
+      const resetTags = freshData.tags || [];
+      reset({ ...freshData, tags: resetTags });
       const timer = setTimeout(() => {
         setTags(resetTags);
         setTagInput('');

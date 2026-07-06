@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { TaskWithTags } from '../types/task.types';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { TaskWithTags, TASK_STATUS, TASK_PRIORITY } from '../types/task.types';
 import { Project } from '@/features/projects/types/project.types';
 import { Goal } from '@/features/goals/types/goal.types';
 import { TaskBoard } from './TaskBoard';
@@ -46,6 +47,39 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
   const [status, setStatus] = useState<string>('all');
   const [tagQuery, setTagQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
+
+  // AI prefill handling
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [aiPrefillOpen, setAiPrefillOpen] = useState(false);
+  const [aiPrefillData, setAiPrefillData] = useState<any>(null);
+
+  useEffect(() => {
+    const prefill = searchParams.get('ai_prefill');
+    if (prefill) {
+      try {
+        const data = JSON.parse(decodeURIComponent(prefill));
+        if (data.type === 'create_task' || data.type === 'update_task_status') {
+          setAiPrefillData({
+            title: data.title || '',
+            description: data.description || '',
+            status: data.status || TASK_STATUS.BELUM_DIMULAI,
+            priority: data.priority || TASK_PRIORITY.NORMAL,
+            due_date: data.due_date || '',
+            project_id: null,
+            goal_id: null,
+            tags: [],
+          });
+          setAiPrefillOpen(true);
+        }
+      } catch {}
+      // Clear the param from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('ai_prefill');
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const activeFilterCount = [
     projectId !== 'all',
@@ -265,6 +299,20 @@ export function TaskView({ initialTasks, projects, goals }: TaskViewProps) {
           <TaskForm projects={projects} goals={goals} />
         </div>
       </div>
+
+      {/* AI Prefill Form */}
+      {aiPrefillData && (
+        <TaskForm
+          open={aiPrefillOpen}
+          onOpenChange={(open) => {
+            setAiPrefillOpen(open);
+            if (!open) setAiPrefillData(null);
+          }}
+          projects={projects}
+          goals={goals}
+          initialData={aiPrefillData}
+        />
+      )}
 
       {/* Filter result summary */}
       {(activeFilterCount > 0 || searchQuery) && (

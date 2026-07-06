@@ -6,6 +6,7 @@ import { AIBriefingCard } from './AIBriefingCard';
 import { HabitCheckInWidget } from './HabitCheckInWidget';
 import { WeeklyProgressChart } from './WeeklyProgressChart';
 import { QuickCaptureModal } from './QuickCaptureModal';
+import { FinanceInsightWidget } from '@/features/finance/components/FinanceInsightWidget';
 import { format, parseISO, isToday } from 'date-fns';
 import { id } from 'date-fns/locale';
 import Link from 'next/link';
@@ -613,6 +614,9 @@ export function CommandCenter({ data }: CommandCenterProps) {
                 />
               </div>
             </div>
+
+            {/* Finance Insight Widget */}
+            <FinanceInsightWidget />
 
             {/* Recent Activity */}
             <div>

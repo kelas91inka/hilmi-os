@@ -4,15 +4,46 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
-import { type Message, type ToolInvocation, DefaultChatTransport } from 'ai';
+import { type UIMessage as Message, type ToolInvocation, DefaultChatTransport } from 'ai';
+import { useRouter } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Bot, User, Sparkles, Zap, Loader2, Mic } from 'lucide-react';
-import { saveMessageAction } from '../actions/ai.actions';
+import { Send, Bot, User, Sparkles, Zap, Loader2, Mic, AlertCircle, Check, X } from 'lucide-react';
 import { AIConversation } from '../types/ai.types';
+import { renameConversationAction, saveMessageAction } from '../actions/ai.actions';
+import { generateConversationTitle } from '../utils/generate-title';
+import { useAIContext } from '../contexts/AIContext';
+import { ActionDraftCard } from './ActionDraftCard';
+import { InteractiveDataCard, parseDataMarkers } from './InteractiveDataCard';
+
+const MODULE_ROUTES: Record<string, string> = {
+  create_task: '/portal/tasks',
+  create_goal: '/portal/goals',
+  create_diary_entry: '/portal/diary',
+  create_finance_transaction: '/portal/finance',
+  update_task_status: '/portal/tasks',
+  create_note: '/portal/notes',
+  create_project: '/portal/projects',
+  create_achievement: '/portal/cms',
+  create_cms_post: '/portal/cms',
+};
+
+const MODULE_LABELS: Record<string, string> = {
+  create_task: 'Tasks',
+  create_goal: 'Goals',
+  create_diary_entry: 'Diary',
+  create_finance_transaction: 'Finance',
+  update_task_status: 'Tasks',
+  create_note: 'Notes',
+  create_project: 'Projects',
+  create_achievement: 'CMS',
+  create_cms_post: 'CMS Posts',
+};
+
 
 function getMessageText(message: any): string {
-  if (message.content && message.content.trim() !== '') {
+  if (message.content && typeof message.content === 'string' && message.content.trim() !== '') {
     return message.content;
   }
   if (Array.isArray(message.parts)) {
@@ -28,17 +59,39 @@ export function ChatInterface({
   initialConversation,
   initialMessages = [],
   systemContext = "General",
-  isFloating = false
+  isFloating = false,
+  onTitleGenerated,
 }: { 
   initialConversation: AIConversation,
   initialMessages: Message[],
   systemContext?: string,
-  isFloating?: boolean
+  isFloating?: boolean,
+  onTitleGenerated?: (title: string) => void,
 }) {
+  const renderCountRef = useRef(0);
+  renderCountRef.current += 1;
+
+  const previousInitialMessagesRef = useRef<Message[]>();
+  const isSameInitialMessages = previousInitialMessagesRef.current === initialMessages;
+  previousInitialMessagesRef.current = initialMessages;
+
+  console.log(`\n================= USECHAT EXPERIMENT LOGS =================`);
+  console.log(`[ChatInterface BEFORE useChat]`);
+  console.log(`conversation.id: ${initialConversation.id}`);
+  console.log(`initialMessages.length: ${initialMessages?.length || 0}`);
+  console.log(`initialMessages === previousInitialMessages: ${isSameInitialMessages}`);
+  console.log(`renderCount: ${renderCountRef.current}`);
+  console.log(`===========================================================`);
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { setIsOpen: setAIOpen } = useAIContext();
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [actionStates, setActionStates] = useState<Record<string, { status: 'pending' | 'confirmed' | 'cancelled'; message?: string }>>({});
+
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -83,29 +136,85 @@ export function ChatInterface({
     }
   };
   
-  const { messages, status, sendMessage } = useChat({
+  const { messages, status, sendMessage, error } = useChat({
+    id: initialConversation.id,
     transport: new DefaultChatTransport({
       api: '/api/ai/chat',
       body: { conversationId: initialConversation.id, systemContext },
     }),
-    initialMessages,
+    messages: initialMessages,
     maxSteps: 5,
-    onFinish: async ({ message }) => {
-      const text = getMessageText(message);
-      await saveMessageAction(initialConversation.id, message.role, text);
-    }
+    onFinish: ({ message }) => {
+      // Save the full assistant UIMessage (with parts, toolInvocations) to DB
+      if (message?.content || message?.parts?.length) {
+        const text = getMessageText(message);
+        saveMessageAction(
+          initialConversation.id,
+          'assistant',
+          text,
+          JSON.stringify(message)
+        ).catch((e: any) =>
+          console.error('[ChatInterface] Failed to save assistant message:', e?.message)
+        );
+      }
+    },
+    onError: (err) => {
+      console.error('[ChatInterface] useChat error:', err);
+      setErrorMsg(err?.message || 'Terjadi kesalahan, coba lagi.');
+    },
   });
 
   const isLoading = status === 'submitted' || status === 'streaming';
 
+  useEffect(() => {
+    if (status !== 'error') setErrorMsg(null);
+  }, [status]);
+
+  useEffect(() => {
+    console.log('[ChatInterface] messages updated, count:', messages.length, 'status:', status);
+    if (messages.length > 0) {
+      const last = messages[messages.length - 1];
+      console.log('[ChatInterface] Last message role:', last.role, 'parts:', JSON.stringify(last.parts), 'content:', (last as any).content);
+    }
+  }, [messages, status]);
+
   const handleQuickPrompt = (prompt: string) => {
+    console.log('[ChatInterface] Quick prompt sent:', prompt);
+    setErrorMsg(null);
     sendMessage({ text: prompt });
   };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+    console.log('[ChatInterface] User sent message:', input);
+    setErrorMsg(null);
+    
+    // Save the user message with full UIMessage data before sending
+    const userMsgText = input;
+    const userMessage = { id: crypto.randomUUID(), role: 'user' as const, content: userMsgText, parts: [{ type: 'text' as const, text: userMsgText }] };
+    saveMessageAction(
+      initialConversation.id,
+      'user',
+      userMsgText,
+      JSON.stringify(userMessage)
+    ).catch((e: any) =>
+      console.error('[ChatInterface] Failed to save user message:', e?.message)
+    );
+    
     sendMessage({ text: input });
+    
+    // Auto-title: generate title from first meaningful message if conversation has default title
+    const defaultTitles = ['Percakapan Baru', 'Sesi Baru', 'Sesi Cepat'];
+    if (defaultTitles.includes(initialConversation.title)) {
+      const newTitle = generateConversationTitle(input);
+      if (newTitle && newTitle !== initialConversation.title) {
+        renameConversationAction(initialConversation.id, newTitle).then(() => {
+          onTitleGenerated?.(newTitle);
+        }).catch(console.error);
+      }
+    }
+    
     setInput('');
   };
 
@@ -165,7 +274,8 @@ export function ChatInterface({
           </div>
         )}
 
-        {messages.map((m: Message) => (
+        {messages.map((m: Message, index: number) => {
+            return (
           <div key={m.id} className={`flex gap-3 sm:gap-4 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {m.role === 'assistant' && (
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
@@ -188,31 +298,145 @@ export function ChatInterface({
                 </div>
               )}
               
-              <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
-                {getMessageText(m)}
+              <div className="text-sm sm:text-base leading-relaxed">
+                {(() => {
+                  const text = getMessageText(m);
+                  const parts = parseDataMarkers(text);
+                  return parts.map((part, i) => {
+                    if (part.type === 'data' && part.dataType && part.data && part.data.length > 0) {
+                      return <InteractiveDataCard key={i} type={part.dataType} data={part.data} />;
+                    }
+                    // Assistant messages: render markdown; user messages: plain text
+                    if (m.role === 'assistant') {
+                      return (
+                        <div key={i} className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-pre:my-2 prose-blockquote:my-2 prose-a:text-primary">
+                          <ReactMarkdown
+                            components={{
+                              a: ({ href, children }) => (
+                                <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+                              ),
+                              pre: ({ children }) => (
+                                <pre className="bg-muted/60 rounded-lg p-3 text-xs overflow-x-auto border border-border/60">{children}</pre>
+                              ),
+                              code: ({ className, children, ...props }: any) => {
+                                const isBlock = className?.includes('language-');
+                                if (isBlock) return <code className={className} {...props}>{children}</code>;
+                                return <code className="bg-muted/60 px-1.5 py-0.5 rounded text-xs border border-border/40" {...props}>{children}</code>;
+                              },
+                            }}
+                          >
+                            {part.content}
+                          </ReactMarkdown>
+                        </div>
+                      );
+                    }
+                    return <span key={i} className="whitespace-pre-wrap">{part.content}</span>;
+                  });
+                })()}
               </div>
               
               {/* Render Tool Invocations */}
-              {m.toolInvocations?.map((toolInvocation: ToolInvocation) => (
-                <div key={toolInvocation.toolCallId} className="mt-3 bg-muted/60 rounded-xl p-3 text-xs border border-border/80">
-                  <div className="flex items-center gap-2 font-medium text-muted-foreground">
-                    {toolInvocation.state === 'call' ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                    ) : (
-                      <Sparkles className="w-3.5 h-3.5 text-primary" />
-                    )}
-                    <span>
-                      {toolInvocation.toolName === 'get_weekly_tasks' && 'Menganalisis Task Mingguan...'}
-                      {toolInvocation.toolName === 'get_active_projects' && 'Membaca Project Aktif...'}
-                      {toolInvocation.toolName === 'get_goals_progress' && 'Mengecek Progress Goal...'}
-                      {toolInvocation.toolName === 'get_recent_diary' && 'Membaca Jurnal Terbaru...'}
-                      {toolInvocation.toolName === 'get_habit_stats' && 'Menganalisis Habit...'}
-                      {toolInvocation.toolName === 'create_task' && 'Menambahkan Task Baru...'}
-                      {toolInvocation.toolName === 'create_diary_entry' && 'Menambahkan Catatan Jurnal...'}
-                    </span>
+              {m.toolInvocations?.map((toolInvocation: ToolInvocation) => {
+                const { toolCallId, toolName, state } = toolInvocation;
+                
+                // Check if this tool invocation has a confirmation draft
+                const isDraftResult = 
+                  state === 'result' && 
+                  toolInvocation.result && 
+                  (toolInvocation.result as any).requiresConfirmation;
+
+                if (isDraftResult) {
+                  const result = toolInvocation.result as any;
+                  const actionState = actionStates[toolCallId];
+
+                  if (actionState?.status === 'confirmed') {
+                    const route = MODULE_ROUTES[result.type] || '/portal/dashboard';
+                    const label = MODULE_LABELS[result.type] || 'Module';
+                    return (
+                      <div key={toolCallId} className="mt-3 bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl p-3 flex items-center justify-between gap-2 text-xs font-semibold shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <Check className="w-4 h-4 shrink-0 text-emerald-500" />
+                          <span>{actionState.message || 'Aksi berhasil disimpan.'}</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (isFloating) setAIOpen(false);
+                            router.push(route);
+                          }}
+                          className="shrink-0 text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                        >
+                          {label} →
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  if (actionState?.status === 'cancelled') {
+                    return (
+                      <div key={toolCallId} className="mt-3 bg-muted border border-border text-muted-foreground rounded-xl p-3 flex items-center gap-2 text-xs font-semibold shadow-sm">
+                        <X className="w-4 h-4 shrink-0" />
+                        <span>Aksi dibatalkan.</span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <ActionDraftCard
+                      key={toolCallId}
+                      toolCallId={toolCallId}
+                      type={result.type}
+                      draft={result.draft}
+                      isFloating={isFloating}
+                      onConfirmSuccess={(id, msg) => {
+                        setActionStates(prev => ({
+                          ...prev,
+                          [id]: { status: 'confirmed', message: msg }
+                        }));
+                      }}
+                      onCancel={(id) => {
+                        setActionStates(prev => ({
+                          ...prev,
+                          [id]: { status: 'cancelled' }
+                        }));
+                      }}
+                    />
+                  );
+                }
+
+                // Default status rendering
+                return (
+                  <div key={toolCallId} className="mt-3 bg-muted/60 rounded-xl p-3 text-xs border border-border/80">
+                    <div className="flex items-center gap-2 font-medium text-muted-foreground">
+                      {state === 'call' ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                      ) : (
+                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                      )}
+                      <span>
+                        {toolName === 'get_weekly_tasks' && 'Menganalisis Task Mingguan...'}
+                        {toolName === 'get_active_projects' && 'Membaca Project Aktif...'}
+                        {toolName === 'get_goals_progress' && 'Mengecek Progress Goal...'}
+                        {toolName === 'get_recent_diary' && 'Membaca Jurnal Terbaru...'}
+                        {toolName === 'get_habit_stats' && 'Menganalisis Habit...'}
+                        {toolName === 'get_finance_summary' && 'Menganalisis Ringkasan Keuangan...'}
+                        {toolName === 'get_achievements' && 'Membaca Pencapaian...'}
+                        {toolName === 'get_dashboard_insight' && 'Mengambil Insight Dashboard...'}
+                        {toolName === 'create_task' && 'Menyiapkan Draf Task Baru...'}
+                        {toolName === 'create_goal' && 'Menyiapkan Draf Goal Baru...'}
+                        {toolName === 'create_diary_entry' && 'Menyiapkan Draf Jurnal...'}
+                        {toolName === 'create_finance_transaction' && 'Menyiapkan Draf Transaksi Keuangan...'}
+                        {toolName === 'update_task_status' && 'Menyiapkan Draf Perubahan Status...'}
+                        {toolName === 'create_note' && 'Menyiapkan Draf Note Baru...'}
+                        {toolName === 'create_project' && 'Menyiapkan Draf Project Baru...'}
+                        {toolName === 'create_achievement' && 'Menyiapkan Draf Achievement...'}
+                        {toolName === 'create_cms_post' && 'Menyiapkan Draf Post CMS...'}
+                        {!['get_weekly_tasks','get_active_projects','get_goals_progress','get_recent_diary','get_habit_stats','get_finance_summary','get_achievements','get_dashboard_insight','create_task','create_goal','create_diary_entry','create_finance_transaction','update_task_status','create_note','create_project','create_achievement','create_cms_post','get_active_tasks','get_notes','get_weekly_insight','get_monthly_insight','get_cms_posts'].includes(toolName) && `Memanggil: ${toolName}...`}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
+
             </div>
 
             {m.role === 'user' && (
@@ -221,7 +445,8 @@ export function ChatInterface({
               </div>
             )}
           </div>
-        ))}
+        );
+        })}
         
         {isLoading && messages[messages.length - 1]?.role === 'user' && (
           <div className="flex gap-3 sm:gap-4 justify-start">
@@ -232,6 +457,18 @@ export function ChatInterface({
               <span className="w-1.5 h-1.5 rounded-full bg-foreground/45 animate-bounce" />
               <span className="w-1.5 h-1.5 rounded-full bg-foreground/45 animate-bounce delay-100" />
               <span className="w-1.5 h-1.5 rounded-full bg-foreground/45 animate-bounce delay-200" />
+            </div>
+          </div>
+        )}
+
+        {/* Error Display */}
+        {(errorMsg || error) && (
+          <div className="flex gap-3 sm:gap-4 justify-start">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0 border border-destructive/20">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
+            </div>
+            <div className="bg-destructive/5 border border-destructive/20 rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-destructive">
+              {errorMsg || error?.message || 'Terjadi kesalahan. Silakan coba lagi.'}
             </div>
           </div>
         )}
@@ -272,4 +509,3 @@ export function ChatInterface({
     </div>
   );
 }
-

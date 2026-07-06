@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Transaction, MonthlySummary } from '../types/finance.types';
 import { TransactionList } from './TransactionList';
 import { ExpenseBreakdown } from './ExpenseBreakdown';
@@ -44,6 +45,35 @@ export function FinanceClient({
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc'>('date_desc');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+
+  // AI prefill handling
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [aiPrefillOpen, setAiPrefillOpen] = useState(false);
+  const [aiPrefillData, setAiPrefillData] = useState<any>(null);
+
+  useEffect(() => {
+    const prefill = searchParams.get('ai_prefill');
+    if (prefill) {
+      try {
+        const data = JSON.parse(decodeURIComponent(prefill));
+        if (data.type === 'create_finance_transaction') {
+          setAiPrefillData({
+            type: data.transaction_type || data.type || 'expense',
+            amount: Number(data.amount) || 0,
+            category: data.category || null,
+            description: data.description || null,
+            transaction_date: data.transaction_date || new Date().toISOString().split('T')[0],
+          });
+          setAiPrefillOpen(true);
+        }
+      } catch {}
+      const url = new URL(window.location.href);
+      url.searchParams.delete('ai_prefill');
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Extract unique categories from current month's transactions
   const uniqueCategories = useMemo(() => {
@@ -217,12 +247,20 @@ export function FinanceClient({
             </button>
           </div>
 
-          <div className="h-4 border-l border-border/50 hidden sm:block mx-1" />
-
-          {/* Add Transaction Dialog */}
-          <TransactionFormDialog />
         </div>
       </div>
+
+      {/* AI Prefill Transaction Form */}
+      {aiPrefillData && (
+        <TransactionFormDialog
+          open={aiPrefillOpen}
+          onOpenChange={(open) => {
+            setAiPrefillOpen(open);
+            if (!open) setAiPrefillData(null);
+          }}
+          initialData={aiPrefillData}
+        />
+      )}
 
       {/* Filter summary */}
       {isFiltered && (

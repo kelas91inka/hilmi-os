@@ -1,0 +1,290 @@
+[8d4hrd] 
+
+===== NEW REQUEST =====
+[8d4hrd] [⏱️ 2ms] Body Parsed. msg_count=1
+[8d4hrd] UNHANDLED: Cannot read properties of undefined (reading 'map')
+[45oc1l] 
+
+===== NEW REQUEST =====
+[45oc1l] [⏱️ 2ms] Body Parsed. msg_count=1
+[45oc1l] [⏱️ 1ms] Messages converted.
+[45oc1l] Model selected: llama-3.1-8b-instant
+[45oc1l] [⏱️ 1ms] Model loaded.
+[45oc1l] [⏱️ 1ms] System prompt built.
+[45oc1l] [⏱️ 16ms] TOTAL PREP TIME. Starting streamText...
+[45oc1l] [⏱️ 11ms] result.toUIMessageStreamResponse() returning...
+[45oc1l] [⏱️ 1715ms] STREAM FINISHED. reason=stop, tokens=5520
+[vhfdns] 
+
+===== NEW REQUEST =====
+[vhfdns] [⏱️ 76ms] Body Parsed. msg_count=1
+[vhfdns] [⏱️ 0ms] Messages converted.
+[vhfdns] Model selected: llama-3.1-8b-instant
+[vhfdns] [⏱️ 0ms] Model loaded.
+[vhfdns] [⏱️ 1ms] System prompt built.
+[vhfdns] [⏱️ 536ms] TOTAL PREP TIME. Starting streamText...
+[vhfdns] [⏱️ 80ms] result.toUIMessageStreamResponse() returning...
+[vhfdns] [⏱️ 3088ms] STREAM FINISHED. reason=stop, tokens=5512
+[bix9s2] 
+
+===== NEW REQUEST =====
+[bix9s2] [⏱️ 2ms] Body Parsed. msg_count=1
+[bix9s2] [⏱️ 1ms] Messages converted.
+[bix9s2] Model selected: llama-3.1-8b-instant
+[bix9s2] [⏱️ 1ms] Model loaded.
+[bix9s2] [⏱️ 1ms] System prompt built.
+[bix9s2] [⏱️ 24ms] TOTAL PREP TIME. Starting streamText...
+[bix9s2] [⏱️ 19ms] result.toUIMessageStreamResponse() returning...
+[bix9s2] Stream error: [object Object]
+[n99x8g] 
+
+===== NEW REQUEST =====
+[n99x8g] [⏱️ 2ms] Body Parsed. msg_count=2
+[n99x8g] [⏱️ 0ms] Messages converted.
+[n99x8g] Model selected: llama-3.1-8b-instant
+[n99x8g] [⏱️ 0ms] Model loaded.
+[n99x8g] [⏱️ 1ms] System prompt built.
+[n99x8g] [⏱️ 22ms] TOTAL PREP TIME. Starting streamText...
+[n99x8g] [⏱️ 3ms] result.toUIMessageStreamResponse() returning...
+[n99x8g] [⏱️ 1234ms] STREAM FINISHED. reason=stop, tokens=5483
+[pi3l8i] 
+
+===== NEW REQUEST =====
+[pi3l8i] [⏱️ 1ms] Body Parsed. msg_count=4
+[pi3l8i] [⏱️ 1ms] Messages converted.
+[pi3l8i] Model selected: llama-3.1-8b-instant
+[pi3l8i] [⏱️ 0ms] Model loaded.
+[pi3l8i] [⏱️ 1ms] System prompt built.
+[pi3l8i] [⏱️ 39ms] TOTAL PREP TIME. Starting streamText...
+[pi3l8i] [⏱️ 10ms] result.toUIMessageStreamResponse() returning...
+[pi3l8i] [⏱️ 53579ms] STREAM FINISHED. reason=stop, tokens=5627
+[5uy0fa] 
+
+===== NEW REQUEST =====
+[5uy0fa] [⏱️ 5ms] Body Parsed. msg_count=1
+[5uy0fa] [⏱️ 1ms] Messages converted.
+[5uy0fa] Model selected: llama-3.1-8b-instant
+[5uy0fa] [⏱️ 1ms] Model loaded.
+[5uy0fa] [⏱️ 42ms] System prompt built.
+[5uy0fa] [⏱️ 71ms] TOTAL PREP TIME. Starting streamText...
+[5uy0fa] [⏱️ 15ms] result.toUIMessageStreamResponse() returning...
+[5uy0fa] Stream error: [object Object]
+[5uy0fa] [⏱️ 925ms] STREAM FINISHED. reason=error, tokens=undefined
+[mag52p] 
+
+===== NEW REQUEST =====
+[mag52p] [⏱️ 2ms] Body Parsed. msg_count=2
+[mag52p] [⏱️ 0ms] Messages converted.
+[mag52p] Model selected: llama-3.1-8b-instant
+[mag52p] [⏱️ 0ms] Model loaded.
+[mag52p] [⏱️ 1ms] System prompt built.
+[mag52p] [⏱️ 25ms] TOTAL PREP TIME. Starting streamText...
+[mag52p] [⏱️ 5ms] result.toUIMessageStreamResponse() returning...
+[mag52p] Stream error: [object Object]
+[mag52p] [⏱️ 40101ms] STREAM FINISHED. reason=error, tokens=undefined
+[4zhtc3] 
+
+===== NEW REQUEST =====
+[4zhtc3] [⏱️ 9ms] Body Parsed. msg_count=1
+[4zhtc3] [⏱️ 2ms] Messages converted.
+[4zhtc3] Model selected: llama-3.1-8b-instant
+[4zhtc3] [⏱️ 1ms] Model loaded.
+[4zhtc3] [⏱️ 76ms] System prompt built.
+[4zhtc3] [⏱️ 267ms] TOTAL PREP TIME. Starting streamText...
+[4zhtc3] [⏱️ 15ms] result.toUIMessageStreamResponse() returning...
+[4zhtc3] [⏱️ 52304ms] STREAM FINISHED. reason=stop, tokens=5584
+[vlhrii] 
+
+===== NEW REQUEST =====
+[vlhrii] [⏱️ 10ms] Body Parsed. msg_count=1
+[vlhrii] [⏱️ 1ms] Messages converted.
+[vlhrii] Model selected: llama-3.1-8b-instant
+[vlhrii] [⏱️ 1ms] Model loaded.
+[vlhrii] [⏱️ 13ms] System prompt built.
+[vlhrii] [⏱️ 101ms] TOTAL PREP TIME. Starting streamText...
+[vlhrii] [⏱️ 37ms] result.toUIMessageStreamResponse() returning...
+[vlhrii] [⏱️ 57751ms] STREAM FINISHED. reason=stop, tokens=5851
+[i7d4u3] 
+
+===== NEW REQUEST =====
+[i7d4u3] [⏱️ 1ms] Body Parsed. msg_count=1
+[i7d4u3] [⏱️ 1ms] Messages converted.
+[i7d4u3] Model selected: llama-3.1-8b-instant
+[i7d4u3] [⏱️ 1ms] Model loaded.
+[i7d4u3] [⏱️ 67ms] System prompt built.
+[i7d4u3] [⏱️ 90ms] TOTAL PREP TIME. Starting streamText...
+[i7d4u3] [⏱️ 34ms] result.toUIMessageStreamResponse() returning...
+[i7d4u3] Stream error: Failed to call a function. Please adjust your prompt. See 'failed_generation' for more details.
+[i7d4u3] [⏱️ 917ms] STREAM FINISHED. reason=error, tokens=undefined
+[p1kto3] 
+
+===== NEW REQUEST =====
+[p1kto3] [⏱️ 2ms] Body Parsed. msg_count=1
+[p1kto3] [⏱️ 10ms] Messages converted.
+[p1kto3] Model selected: llama-3.1-8b-instant
+[p1kto3] [⏱️ 1ms] Model loaded.
+[p1kto3] [⏱️ 7ms] System prompt built.
+[p1kto3] [⏱️ 37ms] TOTAL PREP TIME. Starting streamText...
+[p1kto3] [⏱️ 22ms] result.toUIMessageStreamResponse() returning...
+[p1kto3] [⏱️ 57642ms] STREAM FINISHED. reason=stop, tokens=5853
+[p3aflq] 
+
+===== NEW REQUEST =====
+[p3aflq] [⏱️ 2ms] Body Parsed. msg_count=1
+[p3aflq] [⏱️ 9ms] Messages converted.
+[p3aflq] Model selected: llama-3.1-8b-instant
+[p3aflq] [⏱️ 8ms] Model loaded.
+[p3aflq] [⏱️ 37ms] System prompt built.
+[p3aflq] [⏱️ 74ms] TOTAL PREP TIME. Starting streamText...
+[p3aflq] [⏱️ 13ms] result.toUIMessageStreamResponse() returning...
+[p3aflq] [⏱️ 57973ms] STREAM FINISHED. reason=stop, tokens=5840
+[lag7b7] 
+
+===== NEW REQUEST =====
+[lag7b7] [⏱️ 2ms] Body Parsed. msg_count=1
+[lag7b7] [⏱️ 1ms] Messages converted.
+[lag7b7] Model selected: llama-3.1-8b-instant
+[lag7b7] [⏱️ 1ms] Model loaded.
+[lag7b7] [⏱️ 24ms] System prompt built.
+[lag7b7] [⏱️ 49ms] TOTAL PREP TIME. Starting streamText...
+[lag7b7] [⏱️ 14ms] result.toUIMessageStreamResponse() returning...
+[lag7b7] [⏱️ 59705ms] STREAM FINISHED. reason=stop, tokens=5838
+[1fnrvp] 
+
+===== NEW REQUEST =====
+[1fnrvp] [⏱️ 4ms] Body Parsed. msg_count=1
+[1fnrvp] [⏱️ 1ms] Messages converted.
+[1fnrvp] Model selected: llama-3.1-8b-instant
+[1fnrvp] [⏱️ 1ms] Model loaded.
+[1fnrvp] [⏱️ 3ms] System prompt built.
+[1fnrvp] [⏱️ 151ms] TOTAL PREP TIME. Starting streamText...
+[1fnrvp] [⏱️ 32ms] result.toUIMessageStreamResponse() returning...
+[1fnrvp] [⏱️ 2499ms] STREAM FINISHED. reason=stop, tokens=5758
+[nyc03d] 
+
+===== NEW REQUEST =====
+[nyc03d] [⏱️ 5ms] Body Parsed. msg_count=1
+[nyc03d] [⏱️ 0ms] Messages converted.
+[nyc03d] Model selected: llama-3.1-8b-instant
+[nyc03d] [⏱️ 0ms] Model loaded.
+[nyc03d] [⏱️ 6ms] System prompt built.
+[nyc03d] [⏱️ 36ms] TOTAL PREP TIME. Starting streamText...
+[nyc03d] [⏱️ 10ms] result.toUIMessageStreamResponse() returning...
+[nyc03d] [⏱️ 1276ms] STREAM FINISHED. reason=stop, tokens=5742
+[kjxt10] 
+
+===== NEW REQUEST =====
+[kjxt10] [⏱️ 9ms] Body Parsed. msg_count=1
+[kjxt10] [⏱️ 14ms] Messages converted.
+[kjxt10] Model selected: llama-3.1-8b-instant
+[kjxt10] [⏱️ 1ms] Model loaded.
+[kjxt10] [⏱️ 216ms] System prompt built.
+[kjxt10] [⏱️ 455ms] TOTAL PREP TIME. Starting streamText...
+[kjxt10] [⏱️ 182ms] result.toUIMessageStreamResponse() returning...
+[kjxt10] [⏱️ 12600ms] STREAM FINISHED. reason=stop, tokens=5752
+[pfy1zb] 
+
+===== NEW REQUEST =====
+[pfy1zb] [⏱️ 16ms] Body Parsed. msg_count=3
+[pfy1zb] [⏱️ 52ms] Messages converted.
+[pfy1zb] Model selected: llama-3.1-8b-instant
+[pfy1zb] [⏱️ 1ms] Model loaded.
+[pfy1zb] [⏱️ 1ms] System prompt built.
+[pfy1zb] [⏱️ 1597ms] TOTAL PREP TIME. Starting streamText...
+[pfy1zb] [⏱️ 4ms] result.toUIMessageStreamResponse() returning...
+[pfy1zb] Stream error: Failed to call a function. Please adjust your prompt. See 'failed_generation' for more details.
+[pfy1zb] [⏱️ 1400ms] STREAM FINISHED. reason=error, tokens=undefined
+[npwraw] 
+
+===== NEW REQUEST =====
+[npwraw] [⏱️ 18ms] Body Parsed. msg_count=1
+[npwraw] [⏱️ 2ms] Messages converted.
+[npwraw] Model selected: llama-3.1-8b-instant
+[npwraw] [⏱️ 1ms] Model loaded.
+[npwraw] [⏱️ 60ms] System prompt built.
+[npwraw] [⏱️ 133ms] TOTAL PREP TIME. Starting streamText...
+[npwraw] [⏱️ 31ms] result.toUIMessageStreamResponse() returning...
+[npwraw] [⏱️ 1964ms] STREAM FINISHED. reason=stop, tokens=5753
+[wbqwx5] 
+
+===== NEW REQUEST =====
+[wbqwx5] [⏱️ 26ms] Body Parsed. msg_count=1
+[wbqwx5] [⏱️ 56ms] Messages converted.
+[wbqwx5] Model selected: llama-3.1-8b-instant
+[wbqwx5] [⏱️ 1ms] Model loaded.
+[wbqwx5] [⏱️ 158ms] System prompt built.
+[wbqwx5] [⏱️ 3021ms] TOTAL PREP TIME. Starting streamText...
+[wbqwx5] [⏱️ 411ms] result.toUIMessageStreamResponse() returning...
+[wbqwx5] Stream error: Request too large for model `llama-3.1-8b-instant` in organization `org_01ktj6qe63ebw8m6zsv2cg48r9` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Requested 7571, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing
+[wbqwx5] [⏱️ 16165ms] STREAM FINISHED. reason=tool-calls, tokens=6187
+[hip1rn] 
+
+===== NEW REQUEST =====
+[hip1rn] [⏱️ 10ms] Body Parsed. msg_count=1
+[hip1rn] [⏱️ 0ms] Messages converted.
+[hip1rn] Model selected: llama-3.1-8b-instant
+[hip1rn] [⏱️ 1ms] Model loaded.
+[hip1rn] [⏱️ 4ms] System prompt built.
+[hip1rn] [⏱️ 2325ms] TOTAL PREP TIME. Starting streamText...
+[hip1rn] [⏱️ 120ms] result.toUIMessageStreamResponse() returning...
+[hip1rn] Stream error: Request too large for model `llama-3.1-8b-instant` in organization `org_01ktj6qe63ebw8m6zsv2cg48r9` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Requested 6187, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing
+[tsrrea] 
+
+===== NEW REQUEST =====
+[tsrrea] [⏱️ 2ms] Body Parsed. msg_count=1
+[tsrrea] UNHANDLED: Cannot read properties of undefined (reading 'map')
+[0ai0c7] 
+
+===== NEW REQUEST =====
+[0ai0c7] [⏱️ 2ms] Body Parsed. msg_count=1
+[0ai0c7] UNHANDLED: Cannot read properties of undefined (reading 'map')
+[iendh7] 
+
+===== NEW REQUEST =====
+[iendh7] [⏱️ 2ms] Body Parsed. msg_count=1
+[iendh7] UNHANDLED: Cannot read properties of undefined (reading 'map')
+[viv9cf] 
+
+===== NEW REQUEST =====
+[viv9cf] [⏱️ 2ms] Body Parsed. msg_count=1
+[viv9cf] [⏱️ 0ms] Messages converted.
+[viv9cf] Model selected: llama-3.1-8b-instant
+[viv9cf] [⏱️ 0ms] Model loaded.
+[viv9cf] [⏱️ 1ms] System prompt built.
+[viv9cf] [⏱️ 36ms] TOTAL PREP TIME. Starting streamText...
+[viv9cf] [⏱️ 8ms] result.toUIMessageStreamResponse() returning...
+[viv9cf] Stream error: Request too large for model `llama-3.1-8b-instant` in organization `org_01ktj6qe63ebw8m6zsv2cg48r9` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Requested 7628, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing
+[viv9cf] [⏱️ 2323ms] STREAM FINISHED. reason=tool-calls, tokens=6584
+[k6lu5c] 
+
+===== NEW REQUEST =====
+[k6lu5c] [⏱️ 2ms] Body Parsed. msg_count=1
+[k6lu5c] [⏱️ 0ms] Messages converted.
+[k6lu5c] Model selected: llama-3.1-8b-instant
+[k6lu5c] [⏱️ 0ms] Model loaded.
+[k6lu5c] [⏱️ 1ms] System prompt built.
+[k6lu5c] [⏱️ 334ms] TOTAL PREP TIME. Starting streamText...
+[k6lu5c] [⏱️ 64ms] result.toUIMessageStreamResponse() returning...
+[k6lu5c] [⏱️ 1681ms] STREAM FINISHED. reason=stop, tokens=5766
+[m0g0dd] 
+
+===== NEW REQUEST =====
+[m0g0dd] [⏱️ 17ms] Body Parsed. msg_count=1
+[m0g0dd] [⏱️ 3ms] Messages converted.
+[m0g0dd] Model selected: llama-3.1-8b-instant
+[m0g0dd] [⏱️ 1ms] Model loaded.
+[m0g0dd] [⏱️ 1ms] System prompt built.
+[m0g0dd] [⏱️ 992ms] TOTAL PREP TIME. Starting streamText...
+[m0g0dd] [⏱️ 68ms] result.toUIMessageStreamResponse() returning...
+[m0g0dd] [⏱️ 2989ms] STREAM FINISHED. reason=stop, tokens=5746
+[fvvr1z] 
+
+===== NEW REQUEST =====
+[fvvr1z] [⏱️ 3ms] Body Parsed. msg_count=8
+[fvvr1z] [⏱️ 1ms] Messages converted.
+[fvvr1z] Model selected: llama-3.1-8b-instant
+[fvvr1z] [⏱️ 1ms] Model loaded.
+[fvvr1z] [⏱️ 6ms] System prompt built.
+[fvvr1z] [⏱️ 68ms] TOTAL PREP TIME. Starting streamText...
+[fvvr1z] [⏱️ 18ms] result.toUIMessageStreamResponse() returning...
+[fvvr1z] [⏱️ 2120ms] STREAM FINISHED. reason=stop, tokens=5807

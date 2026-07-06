@@ -7,8 +7,8 @@ export const taskSchema = z.object({
   status: z.nativeEnum(TASK_STATUS).default(TASK_STATUS.BELUM_DIMULAI),
   priority: z.nativeEnum(TASK_PRIORITY).default(TASK_PRIORITY.NORMAL),
   due_date: z.string().optional().nullable(),
-  project_id: z.string().uuid().optional().nullable(),
-  goal_id: z.string().uuid().optional().nullable(),
+  project_id: z.union([z.string().uuid(), z.literal(""), z.literal("none")]).optional().nullable().transform(val => (val === "" || val === "none" ? null : val)),
+  goal_id: z.union([z.string().uuid(), z.literal(""), z.literal("none")]).optional().nullable().transform(val => (val === "" || val === "none" ? null : val)),
   tags: z.array(z.string()).default([]),
 });
 

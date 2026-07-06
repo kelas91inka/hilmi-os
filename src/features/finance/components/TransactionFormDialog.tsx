@@ -101,19 +101,23 @@ export function TransactionFormDialog({ trigger, open: controlledOpen, onOpenCha
     }
   };
 
+  const isControlled = controlledOpen !== undefined;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        nativeButton={trigger ? (trigger.type === 'button' || trigger.type === Button) : true}
-        render={
-          trigger || (
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Transaction
-            </Button>
-          )
-        }
-      />
+      {/* Only render trigger if: custom trigger provided, OR not in controlled mode */}
+      {(trigger || !isControlled) && (
+        <DialogTrigger
+          render={
+            trigger || (
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Transaksi
+              </Button>
+            )
+          }
+        />
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Edit Transaction' : 'New Transaction'}</DialogTitle>

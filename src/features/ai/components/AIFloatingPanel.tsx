@@ -3,54 +3,87 @@
 import { useAIContext } from "../contexts/AIContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ChatInterface } from "./ChatInterface";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { AIConversation } from "../types/ai.types";
 import { type UIMessage as Message } from "ai";
-import { createConversationAction, getConversationsAction, getConversationMessagesAction } from "../actions/ai.actions";
-import { Sparkles, Brain, Loader2 } from "lucide-react";
+import { createConversationAction, getConversationMessagesAction } from "../actions/ai.actions";
+import { parseStoredMessages } from "../utils/message-parser";
+import { Sparkles, Loader2 } from "lucide-react";
+
+const SESSION_KEY = 'hilmi_ai_quick_chat_conversation_id';
 
 export function AIFloatingPanel() {
   const { isOpen, setIsOpen, pageContext } = useAIContext();
   const [conversation, setConversation] = useState<AIConversation | null>(null);
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const prevOpenRef = useRef(false);
+  const initializingRef = useRef(false);
 
-  useEffect(() => {
-    if (isOpen && !conversation) {
-      loadConversation();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  const loadConversation = async () => {
+  // Load or create a conversation for the floating panel.
+  // Uses sessionStorage to persist the conversation ID across opens/closes
+  // within the same browser session, so context is not lost.
+  const initConversation = useCallback(async () => {
+    if (initializingRef.current) return;
+    initializingRef.current = true;
     setIsLoading(true);
-    try {
-      const convoResult = await getConversationsAction();
-      let activeConvo = convoResult.data?.[0];
 
-      if (!activeConvo) {
-        const createResult = await createConversationAction('Sesi Baru');
-        if (createResult.success && createResult.data) {
-          activeConvo = createResult.data;
+    try {
+      const savedId = typeof window !== 'undefined'
+        ? sessionStorage.getItem(SESSION_KEY)
+        : null;
+
+      if (savedId) {
+        // Try to resume existing conversation
+        try {
+          const msgsResult = await getConversationMessagesAction(savedId);
+          if (msgsResult.success && msgsResult.data) {
+            // Restore conversation object with the saved ID
+            const existingConversation: AIConversation = {
+              id: savedId,
+              title: 'Sesi Cepat',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              user_id: '',
+            };
+            setConversation(existingConversation);
+
+            // Restore messages from DB
+            const msgs = parseStoredMessages(msgsResult.data || []);
+            setInitialMessages(msgs);
+            return;
+          }
+        } catch {
+          // Saved conversation no longer exists, create a new one
+          sessionStorage.removeItem(SESSION_KEY);
         }
       }
 
-      if (activeConvo) {
-        setConversation(activeConvo);
-        const msgResult = await getConversationMessagesAction(activeConvo.id);
-        setInitialMessages((msgResult.data || []).map(m => ({
-          id: m.id,
-          role: (m.role === 'data' ? 'assistant' : m.role) as "system" | "user" | "assistant",
-          content: m.content,
-          parts: [{ type: 'text' as const, text: m.content }]
-        })));
+      // Create a new conversation
+      const createResult = await createConversationAction('Sesi Cepat');
+      if (createResult.success && createResult.data) {
+        const conv = createResult.data;
+        sessionStorage.setItem(SESSION_KEY, conv.id);
+        setConversation(conv);
+        setInitialMessages([]);
       }
     } catch (error) {
-      console.error("Failed to load conversation", error);
+      console.error("Failed to init quick chat conversation", error);
     } finally {
       setIsLoading(false);
+      initializingRef.current = false;
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && !prevOpenRef.current) {
+      // Transition from closed → open
+      if (!conversation) {
+        initConversation();
+      }
+    }
+    prevOpenRef.current = isOpen;
+  }, [isOpen, conversation, initConversation]);
 
   return (
     <>
@@ -62,7 +95,9 @@ export function AIFloatingPanel() {
         aria-label="Buka AI Assistant"
         title="AI Assistant (Hilmi OS)"
       >
-        <Brain className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
+        <span className="w-6 h-6 group-hover:scale-110 transition-transform duration-200 flex items-center justify-center">
+          <Sparkles className="w-6 h-6" />
+        </span>
         {/* Animated ping for first-time hint */}
         <span className="absolute -top-1 -right-1 flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
@@ -94,7 +129,7 @@ export function AIFloatingPanel() {
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                   <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
-                <p className="text-sm text-muted-foreground">Menghubungkan ke AI...</p>
+                <p className="text-sm text-muted-foreground">Menyiapkan sesi...</p>
               </div>
             ) : conversation ? (
               <ChatInterface
@@ -102,6 +137,9 @@ export function AIFloatingPanel() {
                 initialMessages={initialMessages}
                 systemContext={pageContext}
                 isFloating={true}
+                onTitleGenerated={() => {
+                  // Floating widget doesn't show conversation list, no update needed
+                }}
               />
             ) : (
               <div className="h-full flex items-center justify-center">
