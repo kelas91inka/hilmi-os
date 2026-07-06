@@ -2,7 +2,7 @@
 // @ts-nocheck
 import { createGroq } from '@ai-sdk/groq';
 import { streamText, type CoreMessage, convertToModelMessages, isLoopFinished } from 'ai';
-import { systemTools } from '@/features/ai/tools/system-tools';
+import { knowledgeOrchestrator } from '@/features/ai/knowledge/orchestrator';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -96,11 +96,11 @@ Defaults yang digunakan sistem:
 - Achievement: achievement_date=hari ini, category=Personal
 - CMS Post: post_type=article
 
-=== ATURAN WRITE OPERATION ===
-1. Panggil tool draft (create_*, update_*, delete_*). Tool ini TIDAK langsung menyimpan ke database.
-2. Tool mengembalikan draft yang membutuhkan konfirmasi user melalui popup form.
-3. Informasikan Hilmi secara singkat bahwa form telah disiapkan dan akan muncul.
-4. JANGAN pernah menyimpan data tanpa konfirmasi.
+=== ATURAN WRITE OPERATION (SANGAT PENTING) ===
+1. ANDA WAJIB memanggil tool (misal: create_task, update_task, delete_*) secara teknis. JANGAN HANYA MENYEBUTKANNYA DALAM TEKS.
+2. JANGAN PERNAH membuat atau mengarang format [DATA:type] untuk operasi CREATE/UPDATE/DELETE.
+3. Tool draft ini TIDAK langsung menyimpan ke database, tetapi akan memicu popup form di layar Hilmi.
+4. Setelah memanggil tool, informasikan secara singkat bahwa form telah disiapkan dan meminta Hilmi untuk mengonfirmasinya di layar.
 5. Untuk update/delete: selalu fetch data dulu (get_*) untuk mendapatkan id yang benar.
 
 === ATURAN ANTI-HALUSINASI ===
@@ -108,12 +108,12 @@ Defaults yang digunakan sistem:
 2. SEBELUM menjawab pertanyaan tentang data, WAJIB panggil tool read terlebih dahulu.
 3. Jawaban harus berdasarkan data aktual dari database.
 
-=== FORMAT RESPONS DATA ===
-Ketika menerima data dari tool read, gunakan format marker untuk data interaktif:
+=== FORMAT RESPONS DATA (HANYA UNTUK READ) ===
+HANYA jika Anda menerima hasil pencarian dari tool read (get_*), gunakan format marker ini di akhir respons teks:
 [DATA:type]JSON_ARRAY[/DATA]
 
 Type valid: tasks, projects, goals, notes, finance, achievements, diary
-Contoh: [DATA:tasks][{"id":"xxx","title":"Belajar Docker","status":"belum_dimulai","priority":"tinggi","due_date":"2025-07-01"}][/DATA]
+DILARANG KERAS MENGGUNAKAN MARKER INI JIKA ANDA TIDAK MELAKUKAN PANGGILAN TOOL READ.
 
 Setelah marker data, tambahkan analisis singkat dalam teks biasa.
 
@@ -140,10 +140,15 @@ export async function POST(req: Request) {
     if (!conversationId) return new Response('Conversation ID is required', { status: 400 });
     if (!messages || messages.length === 0) return new Response('Messages array is empty', { status: 400 });
 
-    const modelMessages: CoreMessage[] = await convertToModelMessages(messages);
+    let modelMessages: CoreMessage[] = await convertToModelMessages(messages);
     if (modelMessages.length === 0) return new Response('No valid messages', { status: 400 });
 
-    const modelName = apiKey.startsWith('gsk_') ? 'llama-3.1-8b-instant' : 'gpt-4o-mini';
+    // 1. Truncate history to prevent TPM limit (keep last 8 messages)
+    if (modelMessages.length > 8) {
+      modelMessages = modelMessages.slice(-8);
+    }
+
+    const modelName = apiKey.startsWith('gsk_') ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
 
     let modelInstance: any;
     if (apiKey.startsWith('gsk_')) {
@@ -152,16 +157,51 @@ export async function POST(req: Request) {
       const { createOpenAI } = await import('@ai-sdk/openai');
       modelInstance = createOpenAI({ apiKey })(modelName);
     }
-    const systemPrompt = buildSystemPrompt(systemContext);
 
+    const latestUserMessage = modelMessages.filter(m => m.role === 'user').pop();
+    const userQuery = latestUserMessage && typeof latestUserMessage.content === 'string' ? latestUserMessage.content : '';
+    const historyTokens = Math.ceil(JSON.stringify(modelMessages).length / 4);
+
+    const knowledgeContextText = await knowledgeOrchestrator.buildContext(userQuery, historyTokens);
+    
+    // Resolve intent again to get action tools (fast, ~0ms)
+    const { intentResolver } = await import('@/features/ai/registry/intent-resolver');
+    const { tool, jsonSchema } = await import('ai');
+    const { modules: intentModules, actionType } = await intentResolver.resolve(userQuery);
+    
+    // Build dynamic tools (Priority Hard Limit: Max 2 modules for standard, Max 4 for MULTI_ACTION)
+    let dynamicTools: Record<string, any> = {};
+    if (actionType !== 'READ') {
+      const maxModules = actionType === 'MULTI_ACTION' ? 4 : 2;
+      const targetModules = intentModules.slice(0, maxModules);
+      for (const mod of targetModules) {
+        if (mod.actionProvider) {
+          const actions = mod.actionProvider.getActions();
+          for (const action of actions) {
+            dynamicTools[action.name] = tool({
+              description: action.description,
+              parameters: action.zodSchema ? action.zodSchema : jsonSchema(action.parameters),
+            });
+          }
+        }
+      }
+    }
+
+    let systemPrompt = buildSystemPrompt(systemContext);
+    if (knowledgeContextText) {
+      systemPrompt += `\n\n${knowledgeContextText}`;
+    }
+
+    const hasTools = Object.keys(dynamicTools).length > 0;
     const result = streamText({
       model: modelInstance,
       system: systemPrompt,
       messages: modelMessages,
-      tools: systemTools,
+      tools: hasTools ? dynamicTools : undefined,
+      toolChoice: hasTools && actionType !== 'READ' && actionType !== 'CHAT' ? 'required' : 'auto',
       maxSteps: 5,
       temperature: 0.3,
-      maxTokens: 4096,
+      maxTokens: 800,
       stopWhen: isLoopFinished(),
       onFinish: ({ text, finishReason, usage, toolCalls }) => {
         // streamText finished

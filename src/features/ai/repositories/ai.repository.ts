@@ -453,4 +453,30 @@ export const aiRepository = {
     if (error) throw new Error(error.message);
     return data || [];
   },
+
+  async createTask(title: string, description?: string, priority?: string, dueDate?: string) {
+    const supabase = await createClient();
+    const insertData: any = { title, status: 'belum_dimulai' };
+    if (description) insertData.description = description;
+    if (priority) insertData.priority = priority;
+    if (dueDate) insertData.due_date = dueDate;
+    
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert(insertData)
+      .select()
+      .single();
+      
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  async deleteTask(id: string) {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
 };

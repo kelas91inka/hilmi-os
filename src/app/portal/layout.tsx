@@ -3,7 +3,6 @@ import { PortalHeader } from '@/components/shared/portal-header';
 import { AIProvider } from '@/features/ai/contexts/AIContext';
 import { AIFloatingPanel } from '@/features/ai/components/AIFloatingPanel';
 import { GlobalModalProvider } from '@/features/ai/contexts/GlobalModalContext';
-import { GlobalModalContainer } from '@/features/ai/components/GlobalModalContainer';
 
 export default function PortalLayout({
   children,
@@ -24,9 +23,6 @@ export default function PortalLayout({
           
           {/* Global Floating AI Assistant */}
           <AIFloatingPanel />
-
-          {/* Global Modal Container — renders AI-triggered module forms as overlays */}
-          <GlobalModalContainer />
         </div>
       </GlobalModalProvider>
     </AIProvider>

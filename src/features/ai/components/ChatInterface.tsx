@@ -14,7 +14,7 @@ import { AIConversation } from '../types/ai.types';
 import { renameConversationAction, saveMessageAction } from '../actions/ai.actions';
 import { generateConversationTitle } from '../utils/generate-title';
 import { useAIContext } from '../contexts/AIContext';
-import { ActionDraftCard } from './ActionDraftCard';
+import { EditableConfirmationCard } from './EditableConfirmationCard';
 import { InteractiveDataCard, parseDataMarkers } from './InteractiveDataCard';
 
 const MODULE_ROUTES: Record<string, string> = {
@@ -88,7 +88,6 @@ export function ChatInterface({
   const { setIsOpen: setAIOpen } = useAIContext();
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [actionStates, setActionStates] = useState<Record<string, { status: 'pending' | 'confirmed' | 'cancelled'; message?: string }>>({});
 
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -136,7 +135,7 @@ export function ChatInterface({
     }
   };
   
-  const { messages, status, sendMessage, error } = useChat({
+  const { messages, status, sendMessage, error, addToolResult } = useChat({
     id: initialConversation.id,
     transport: new DefaultChatTransport({
       api: '/api/ai/chat',
@@ -339,39 +338,26 @@ export function ChatInterface({
               {m.toolInvocations?.map((toolInvocation: ToolInvocation) => {
                 const { toolCallId, toolName, state } = toolInvocation;
                 
-                // Check if this tool invocation has a confirmation draft
-                const isDraftResult = 
-                  state === 'result' && 
-                  toolInvocation.result && 
-                  (toolInvocation.result as any).requiresConfirmation;
+                const isActionTool = [
+                  'create_task', 'update_task', 'delete_task', 
+                  'create_goal', 'update_goal', 'create_diary_entry', 
+                  'create_finance_transaction', 'update_task_status', 
+                  'create_note', 'create_project', 'update_project', 
+                  'create_achievement', 'create_cms_post', 'edit_cms_post', 
+                  'publish_post'
+                ].includes(toolName);
 
-                if (isDraftResult) {
-                  const result = toolInvocation.result as any;
-                  const actionState = actionStates[toolCallId];
+                // If it's an action tool and we haven't given a result yet, it's a draft
+                const isDraftCall = isActionTool && state === 'call';
 
-                  if (actionState?.status === 'confirmed') {
-                    const route = MODULE_ROUTES[result.type] || '/portal/dashboard';
-                    const label = MODULE_LABELS[result.type] || 'Module';
-                    return (
-                      <div key={toolCallId} className="mt-3 bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl p-3 flex items-center justify-between gap-2 text-xs font-semibold shadow-sm">
-                        <div className="flex items-center gap-2">
-                          <Check className="w-4 h-4 shrink-0 text-emerald-500" />
-                          <span>{actionState.message || 'Aksi berhasil disimpan.'}</span>
-                        </div>
-                        <button
-                          onClick={() => {
-                            if (isFloating) setAIOpen(false);
-                            router.push(route);
-                          }}
-                          className="shrink-0 text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-                        >
-                          {label} →
-                        </button>
-                      </div>
-                    );
-                  }
+                // Render result if we have it (from addToolResult)
+                if (isActionTool && state === 'result') {
+                  const resultMsg = typeof toolInvocation.result === 'string' ? toolInvocation.result : 'Aksi selesai.';
+                  const isCancelled = resultMsg.includes('cancelled');
+                  const route = MODULE_ROUTES[toolName] || '/portal/dashboard';
+                  const label = MODULE_LABELS[toolName] || 'Module';
 
-                  if (actionState?.status === 'cancelled') {
+                  if (isCancelled) {
                     return (
                       <div key={toolCallId} className="mt-3 bg-muted border border-border text-muted-foreground rounded-xl p-3 flex items-center gap-2 text-xs font-semibold shadow-sm">
                         <X className="w-4 h-4 shrink-0" />
@@ -381,24 +367,33 @@ export function ChatInterface({
                   }
 
                   return (
-                    <ActionDraftCard
+                    <div key={toolCallId} className="mt-3 bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl p-3 flex items-center justify-between gap-2 text-xs font-semibold shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 shrink-0 text-emerald-500" />
+                        <span>{resultMsg}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (isFloating) setAIOpen(false);
+                          router.push(route);
+                        }}
+                        className="shrink-0 text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                      >
+                        {label} →
+                      </button>
+                    </div>
+                  );
+                }
+
+                if (isDraftCall) {
+                  return (
+                    <EditableConfirmationCard
                       key={toolCallId}
                       toolCallId={toolCallId}
-                      type={result.type}
-                      draft={result.draft}
+                      type={toolName}
+                      draft={toolInvocation.args}
+                      addToolResult={addToolResult}
                       isFloating={isFloating}
-                      onConfirmSuccess={(id, msg) => {
-                        setActionStates(prev => ({
-                          ...prev,
-                          [id]: { status: 'confirmed', message: msg }
-                        }));
-                      }}
-                      onCancel={(id) => {
-                        setActionStates(prev => ({
-                          ...prev,
-                          [id]: { status: 'cancelled' }
-                        }));
-                      }}
                     />
                   );
                 }
