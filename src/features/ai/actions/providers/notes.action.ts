@@ -16,7 +16,8 @@ export class NotesActionProvider implements IActionProvider {
             is_favorite: { type: 'boolean' },
           },
           required: ['title'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'create_note', draft: args })
       }
     ];
   }

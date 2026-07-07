@@ -50,7 +50,7 @@ export function EditableConfirmationCard({
         // Granular UI Refresh
         router.refresh(); 
       } else {
-        setErrorMsg(res.error || 'Gagal mengeksekusi aksi.');
+        setErrorMsg('error' in res ? res.error : 'Gagal mengeksekusi aksi.');
         setIsPending(false);
       }
     } catch (e: any) {

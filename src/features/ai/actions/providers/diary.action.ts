@@ -17,7 +17,8 @@ export class DiaryActionProvider implements IActionProvider {
             entry_date: { type: 'string' },
           },
           required: ['content'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'create_diary_entry', draft: args })
       }
     ];
   }

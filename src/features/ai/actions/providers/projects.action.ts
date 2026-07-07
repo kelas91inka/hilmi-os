@@ -18,7 +18,8 @@ export class ProjectsActionProvider implements IActionProvider {
             end_date: { type: 'string' },
           },
           required: ['title'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'create_project', draft: args })
       },
       {
         name: 'update_project',
@@ -33,7 +34,8 @@ export class ProjectsActionProvider implements IActionProvider {
             end_date: { type: 'string' },
           },
           required: ['project_id'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'update_project', draft: args })
       }
     ];
   }

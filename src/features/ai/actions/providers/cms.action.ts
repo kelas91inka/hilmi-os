@@ -17,7 +17,8 @@ export class CMSActionProvider implements IActionProvider {
             status: { type: 'string' },
           },
           required: ['title'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'create_cms_post', draft: args })
       },
       {
         name: 'edit_cms_post',
@@ -31,7 +32,8 @@ export class CMSActionProvider implements IActionProvider {
             status: { type: 'string' },
           },
           required: ['post_id'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'edit_cms_post', draft: args })
       },
       {
         name: 'publish_post',
@@ -42,7 +44,8 @@ export class CMSActionProvider implements IActionProvider {
             post_id: { type: 'string' },
           },
           required: ['post_id'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'publish_post', draft: args })
       }
     ];
   }

@@ -18,7 +18,8 @@ export class FinanceActionProvider implements IActionProvider {
             transaction_date: { type: 'string' },
           },
           required: ['type', 'amount'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'create_finance_transaction', draft: args })
       }
     ];
   }

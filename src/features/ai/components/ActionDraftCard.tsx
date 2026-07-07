@@ -125,7 +125,7 @@ export function ActionDraftCard({
           }, 800);
         }
       } else {
-        setErrorMsg(res.error || 'Gagal mengeksekusi aksi.');
+        setErrorMsg('error' in res ? res.error : 'Gagal mengeksekusi aksi.');
       }
     } catch (e: any) {
       setErrorMsg(e.message || 'Terjadi kesalahan sistem.');

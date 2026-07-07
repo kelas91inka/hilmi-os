@@ -18,7 +18,8 @@ export class GoalsActionProvider implements IActionProvider {
             category: { type: 'string' },
           },
           required: ['title'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'create_goal', draft: args })
       },
       {
         name: 'update_goal',
@@ -34,7 +35,8 @@ export class GoalsActionProvider implements IActionProvider {
             target_date: { type: 'string' },
           },
           required: ['goal_id'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'update_goal', draft: args })
       }
     ];
   }

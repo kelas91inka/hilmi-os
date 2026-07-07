@@ -17,7 +17,8 @@ export class AchievementsActionProvider implements IActionProvider {
             unlocked_at: { type: 'string' },
           },
           required: ['title'],
-        }
+        },
+        execute: async (args: any) => ({ requiresConfirmation: true, type: 'create_achievement', draft: args })
       }
     ];
   }
