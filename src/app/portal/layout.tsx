@@ -1,8 +1,16 @@
+import { Metadata } from 'next';
 import { PortalSidebar } from '@/components/shared/portal-sidebar';
 import { PortalHeader } from '@/components/shared/portal-header';
 import { AIProvider } from '@/features/ai/contexts/AIContext';
 import { AIFloatingPanel } from '@/features/ai/components/AIFloatingPanel';
 import { GlobalModalProvider } from '@/features/ai/contexts/GlobalModalContext';
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function PortalLayout({
   children,

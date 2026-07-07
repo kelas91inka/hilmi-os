@@ -23,15 +23,23 @@ import { getLanguageServer } from '@/lib/i18n-server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLanguageServer();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.muhlim.my.id';
+  const title = `Muhlim — Muhammad Hilmi Mu'afa`;
+  const description = lang === 'en' 
+    ? "Personal platform of Muhammad Hilmi Mu'afa — Student, Builder, System Administrator. Technology projects, writing, and learning journey."
+    : "Platform personal Muhammad Hilmi Mu'afa — Student, Builder, System Administrator. Proyek, tulisan, dan perjalanan belajar teknologi.";
+
   return {
-    title: `Muhlim — Muhammad Hilmi Mu'afa`,
-    description: lang === 'en' 
-      ? "Personal platform of Muhammad Hilmi Mu'afa — Student, Builder, System Administrator. Technology projects, writing, and learning journey."
-      : "Platform personal Muhammad Hilmi Mu'afa — Student, Builder, System Administrator. Proyek, tulisan, dan perjalanan belajar teknologi.",
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/`,
+    },
     openGraph: {
-      title: `Muhlim — Muhammad Hilmi Mu'afa`,
+      title,
       description: lang === 'en' ? 'Building systems that solve real problems.' : 'Membangun sistem yang memecahkan masalah nyata.',
-      url: 'https://muhlim.my.id',
+      url: `${baseUrl}/`,
+      type: 'website',
     },
   };
 }

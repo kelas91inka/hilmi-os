@@ -8,11 +8,24 @@ import { getLanguageServer } from '@/lib/i18n-server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLanguageServer();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.muhlim.my.id';
+  const title = lang === 'en' ? 'Now | Hilmi OS' : 'Sekarang | Hilmi OS';
+  const description = lang === 'en'
+    ? 'What Muhammad Hilmi Mu\'afa is currently working on.'
+    : 'Apa yang sedang dikerjakan Muhammad Hilmi Mu\'afa sekarang.';
+
   return {
-    title: lang === 'en' ? 'Now | Hilmi OS' : 'Sekarang | Hilmi OS',
-    description: lang === 'en'
-      ? 'What Muhammad Hilmi Mu\'afa is currently working on.'
-      : 'Apa yang sedang dikerjakan Muhammad Hilmi Mu\'afa sekarang.',
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/now`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/now`,
+      type: 'website',
+    },
   };
 }
 

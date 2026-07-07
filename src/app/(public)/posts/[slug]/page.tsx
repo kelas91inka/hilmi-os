@@ -35,15 +35,30 @@ export async function generateMetadata({
 
   const title = post.title ?? 'Post dari Muhlim';
   const description = post.excerpt ?? post.body?.slice(0, 160) ?? '';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.muhlim.my.id';
+  const url = `${baseUrl}/posts/${slug}`;
 
   return {
     title: `${title} | Muhlim`,
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title,
       description,
       images: post.cover_image ? [post.cover_image] : [],
-      url: `https://muhlim.my.id/posts/${slug}`,
+      url,
+      type: 'article',
+      publishedTime: post.published_at || undefined,
+      modifiedTime: post.updated_at || undefined,
+      authors: ['Muhammad Hilmi Mu\'afa'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: post.cover_image ? [post.cover_image] : [],
     },
   };
 }
@@ -62,10 +77,32 @@ export default async function PostDetailPage({
 
   const comments = await getApprovedComments(post.id);
   const typeLabel = getPostTypeLabel(post.post_type, lang);
-  const shareUrl = `https://muhlim.my.id/posts/${slug}`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.muhlim.my.id';
+  const shareUrl = `${baseUrl}/posts/${slug}`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt || post.body?.slice(0, 160),
+    image: post.cover_image ? [post.cover_image] : [],
+    datePublished: post.published_at,
+    dateModified: post.updated_at || post.published_at,
+    author: [
+      {
+        '@type': 'Person',
+        name: "Muhammad Hilmi Mu'afa",
+        url: `${baseUrl}/about`,
+      },
+    ],
+  };
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-12 sm:py-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Back nav */}
       <Link
         href="/explore?tab=feed"

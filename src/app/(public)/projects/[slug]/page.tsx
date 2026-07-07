@@ -52,12 +52,29 @@ export async function generateMetadata({
     return { title: lang === 'en' ? 'Project Not Found | Hilmi OS' : 'Proyek Tidak Ditemukan | Hilmi OS' };
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.muhlim.my.id';
+  const url = `${baseUrl}/projects/${slug}`;
+  const title = `${project.title} | Hilmi OS`;
+  const description = project.description || (lang === 'en' ? `Project details of ${project.title} by Muhammad Hilmi Mu'afa.` : `Detail proyek ${project.title} oleh Muhammad Hilmi Mu'afa.`);
+
   return {
-    title: `${project.title} | Hilmi OS`,
-    description: project.description || (lang === 'en' ? `Project details of ${project.title} by Muhammad Hilmi Mu'afa.` : `Detail proyek ${project.title} oleh Muhammad Hilmi Mu'afa.`),
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
-      title: project.title,
-      description: project.description || '',
+      title,
+      description,
+      images: project.cover_image ? [project.cover_image] : [],
+      url,
+      type: 'article',
+      authors: ['Muhammad Hilmi Mu\'afa'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
       images: project.cover_image ? [project.cover_image] : [],
     },
   };
@@ -87,8 +104,31 @@ export default async function PublicProjectDetailPage({
       new Date(b.event_date ?? 0).getTime()
   );
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.muhlim.my.id';
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: project.title,
+    description: project.description,
+    image: project.cover_image ? [project.cover_image] : [],
+    dateCreated: project.start_date,
+    dateModified: project.updated_at,
+    author: [
+      {
+        '@type': 'Person',
+        name: "Muhammad Hilmi Mu'afa",
+        url: `${baseUrl}/about`,
+      },
+    ],
+  };
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-16 sm:py-24 space-y-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Back navigation */}
       <Link
         href="/projects"

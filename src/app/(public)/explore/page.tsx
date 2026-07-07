@@ -5,11 +5,24 @@ import { getLanguageServer } from '@/lib/i18n-server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLanguageServer();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.muhlim.my.id';
+  const title = lang === 'en' ? 'Explore — Muhlim' : 'Jelajahi — Muhlim';
+  const description = lang === 'en' 
+    ? 'Explore content, journey, and achievements of Muhammad Hilmi Mu\'afa.'
+    : 'Jelajahi konten, perjalanan, dan pencapaian Muhammad Hilmi Mu\'afa.';
+
   return {
-    title: lang === 'en' ? 'Explore — Muhlim' : 'Jelajahi — Muhlim',
-    description: lang === 'en' 
-      ? 'Explore content, journey, and achievements of Muhammad Hilmi Mu\'afa.'
-      : 'Jelajahi konten, perjalanan, dan pencapaian Muhammad Hilmi Mu\'afa.',
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/explore`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/explore`,
+      type: 'website',
+    },
   };
 }
 

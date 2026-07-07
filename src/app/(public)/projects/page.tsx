@@ -16,11 +16,24 @@ interface Project {
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLanguageServer();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.muhlim.my.id';
+  const title = lang === 'en' ? 'Projects | Hilmi OS' : 'Proyek | Hilmi OS';
+  const description = lang === 'en'
+    ? 'Collection of projects built and currently being built by Muhammad Hilmi Mu\'afa.'
+    : 'Koleksi proyek yang sedang dan pernah dibangun oleh Muhammad Hilmi Mu\'afa.';
+
   return {
-    title: lang === 'en' ? 'Projects | Hilmi OS' : 'Proyek | Hilmi OS',
-    description: lang === 'en'
-      ? 'Collection of projects built and currently being built by Muhammad Hilmi Mu\'afa.'
-      : 'Koleksi proyek yang sedang dan pernah dibangun oleh Muhammad Hilmi Mu\'afa.',
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/projects`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/projects`,
+      type: 'website',
+    },
   };
 }
 

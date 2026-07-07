@@ -1,5 +1,14 @@
+import { Metadata } from 'next';
 import { LoginButton } from '@/features/auth/components/login-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+export const metadata: Metadata = {
+  title: 'Login | Hilmi OS',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function LoginPage({
   searchParams,
