@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { LoginButton } from '@/features/auth/components/login-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Logo } from '@/components/shared/logo';
 
 export const metadata: Metadata = {
   title: 'Login | Hilmi OS',
@@ -19,11 +20,16 @@ export default async function LoginPage({
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="mx-auto w-full max-w-sm">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight">Hilmi OS</CardTitle>
-          <CardDescription>
-            Personal Operating System
-          </CardDescription>
+        <CardHeader className="space-y-4 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-transparent">
+            <Logo className="w-full h-full" />
+          </div>
+          <div className="space-y-1">
+            <CardTitle className="text-2xl font-bold tracking-tight">Hilmi OS</CardTitle>
+            <CardDescription>
+              Personal Operating System
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {resolvedSearchParams.error === 'unauthorized' && (

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LogoutButton } from '@/features/auth/components/logout-button';
+import { Logo } from '@/components/shared/logo';
 
 type NavItem = {
   name: string;
@@ -101,10 +102,10 @@ export function PortalSidebar({
           isExpanded ? 'justify-start gap-3' : 'justify-center'
         )}>
           <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground glow-primary cursor-pointer"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-transparent cursor-pointer overflow-hidden"
             title="Hilmi OS"
           >
-            <Zap className="h-[18px] w-[18px]" />
+            <Logo className="w-full h-full" />
           </div>
           {isExpanded && (
             <div>

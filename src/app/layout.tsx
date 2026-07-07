@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -20,6 +20,10 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#09090b",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "Hilmi OS | Personal Command Center",
@@ -30,6 +34,15 @@ export const metadata: Metadata = {
   authors: [{ name: "Muhammad Hilmi Mu'afa", url: "https://www.muhlim.my.id" }],
   creator: "Muhammad Hilmi Mu'afa",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Hilmi OS",
+  },
   openGraph: {
     type: "website",
     locale: "id_ID",
